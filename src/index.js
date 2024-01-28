@@ -1,5 +1,5 @@
 const state = require("./state");
-const { transform } = require("./transformer");
+const transformer = require("./transformer");
 
 const components = {};
 
@@ -10,7 +10,7 @@ const register = (name, fn) => {
 const transpileCode = () => {
   [...document.getElementsByTagName("script")].forEach((script) => {
     if (script.type.match(/text\/(babel|hydrogen)/)) {
-      const { code, components } = transform(script.innerText);
+      const { code, components } = transformer.transform(script.innerText);
       // console.log({ code, components });
       Object.entries(
         new Function(`
@@ -43,4 +43,5 @@ window.Hydrogen = {
   register,
   components,
   ...state,
+  ...transformer,
 };

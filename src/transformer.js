@@ -1,22 +1,9 @@
-const parser = require("@babel/parser");
-const generator = require("@babel/generator");
+const acorn = require("acorn");
+const jsx = require("acorn-jsx");
+const astring = require("@barelyhuman/astring-jsx");
 
 const isArray = Array.isArray;
 const isObject = (value) => value === Object(value);
-
-const parse = (hydrogen) =>
-  strip(
-    parser.parse(hydrogen, {
-      sourceType: "module",
-      plugins: ["jsx"],
-    }).program.body
-  );
-
-const generate = (ast) =>
-  generator.default({
-    type: "Program",
-    body: [ast].flat(),
-  }).code;
 
 const strip = (node) => {
   if (isArray(node)) {
@@ -31,6 +18,15 @@ const strip = (node) => {
   }
   return node;
 };
+
+const parse = (hydrogen) =>
+  strip(
+    acorn.Parser.extend(jsx()).parse(hydrogen, {
+      ecmaVersion: 6,
+    })
+  );
+
+const generate = (ast) => astring.generate(ast);
 
 const modify = (node) => {
   if (isArray(node)) {
@@ -49,20 +45,17 @@ const modify = (node) => {
             type: "Identifier",
             name: "Hydrogen",
           },
-          computed: false,
           property: {
             type: "Identifier",
             name: "createElement",
           },
+          computed: false,
         },
         arguments: [
           {
-            type: "StringLiteral",
-            extra: {
-              rawValue: name,
-              raw: `'${name}'`,
-            },
+            type: "Literal",
             value: name,
+            raw: JSON.stringify(name),
           },
           {
             type: "ObjectExpression",
@@ -101,12 +94,9 @@ const modify = (node) => {
                   };
                 case "JSXText":
                   return {
-                    type: "StringLiteral",
-                    extra: {
-                      rawValue: child.value,
-                      raw: JSON.stringify(child.value),
-                    },
+                    type: "Literal",
                     value: child.value,
+                    raw: JSON.stringify(child.value),
                   };
                 default:
                   return child;
@@ -127,17 +117,20 @@ const modify = (node) => {
 };
 
 exports.transform = (hydrogen) => {
-  // console.log(hydrogen);
+  // console.log("hydrogen:", hydrogen);
 
-  const ast = parse(hydrogen);
-  // console.log(JSON.stringify(ast, null, 2));
+  let ast = parse(hydrogen);
+  // console.log("ast:", JSON.stringify(ast, null, 2));
 
-  const modified = modify(ast);
-  // console.log(JSON.stringify(modified, null, 2));
+  ast = modify(ast);
+  // console.log("modified:", JSON.stringify(ast, null, 2));
+
+  const code = generate(ast);
+  // console.log("code:", code);
 
   return {
-    code: generate(modified),
-    components: ast.reduce(
+    code,
+    components: ast.body.reduce(
       (acc, { type, id }) =>
         type === "FunctionDeclaration" ? [...acc, id.name] : acc,
       []
