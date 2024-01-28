@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Demo - hydrogen.js</title>
+    <link rel="icon" href="./icon.svg" />
+    <script src="../dist/hydrogen.js"></script>
+    <script type="text/babel">
+      const { useState } = Hydrogen;
+
+      const log = (msg) => console.log(msg);
+
+      function Counter() {
+        return (
+          <h1 a={1}>
+            {name} ({age})
+          </h1>
+        );
+      }
+
+      function App() {
+        return <Counter />;
+      }
+    </script>
+  </head>
+  <body>
+    <App />
+  </body>
+</html>

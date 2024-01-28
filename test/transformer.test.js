@@ -67,5 +67,41 @@
         `)
       );
     });
+
+    test("index example code", () => {
+      assert.equal(
+        trim(
+          transform(`
+            const { useState } = Hydrogen;
+
+            const log = (msg) => console.log(msg);
+      
+            function Counter() {
+              return (
+                <h1 a={1}>
+                  {name} ({age})
+                </h1>
+              );
+            }
+      
+            function App() {
+              return <Counter />;
+            }
+          `).code
+        ),
+        trim(`
+          const {useState} = Hydrogen;
+          const log = msg => console.log(msg);
+          function Counter() {
+            return Hydrogen.createElement("h1", {
+              a: 1
+            }, ["\\n                  ", () => name, " (", () => age, ")\\n                "]);
+          }
+          function App() {
+            return Hydrogen.createElement(Counter, {}, []);
+          }
+        `)
+      );
+    });
   });
 })();

@@ -55,23 +55,24 @@ const modify = (node) => {
           {
             type: "Literal",
             value: name,
-            raw: JSON.stringify(name),
+            raw: name.match(/^[A-Z]/) ? name : JSON.stringify(name),
           },
           {
             type: "ObjectExpression",
             properties: attributes.map((attribute) => ({
-              type: "ObjectProperty",
+              type: "Property",
               method: false,
+              shorthand: false,
+              computed: false,
               key: {
                 type: "Identifier",
                 name: attribute.name.name,
               },
-              computed: false,
-              shorthand: false,
               value:
                 attribute.value.type === "JSXExpressionContainer"
                   ? attribute.value.expression
                   : attribute.value,
+              kind: "init",
             })),
           },
           {

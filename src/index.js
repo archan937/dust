@@ -25,7 +25,7 @@ const transpileCode = () => {
 const renderElements = () => {
   [...document.getElementsByTagName("*")].forEach((element) => {
     if (element.toString().includes("HTMLUnknownElement")) {
-      // console.log(element.tagName);
+      console.log(element.tagName);
     }
   });
 };
@@ -33,12 +33,12 @@ const renderElements = () => {
 document.addEventListener("DOMContentLoaded", () => {
   transpileCode();
   renderElements();
+  console.log({ components });
 });
 
 window.Hydrogen = {
   createElement: (name, props, children) => {
-    // console.log({ name, props, children });
-    // createElement(name, props, children);
+    console.log("createElement", { name, props, children });
   },
   register,
   components,
