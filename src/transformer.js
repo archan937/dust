@@ -77,34 +77,29 @@ const modify = (node) => {
           },
           {
             type: "ArrayExpression",
-            elements: children.map((child) => {
-              switch (child.type) {
-                case "JSXExpressionContainer":
-                  return {
-                    type: "ArrowFunctionExpression",
-                    id: null,
-                    generator: false,
-                    async: false,
-                    params: [],
-                    body: {
-                      ...child.expression,
-                      extra: {
-                        parenthesized: true,
-                      },
-                    },
-                  };
-                case "JSXText":
-                  return {
-                    type: "Literal",
-                    value: child.value,
-                    raw: JSON.stringify(child.value),
-                  };
-                default:
-                  return child;
-              }
-            }),
+            elements: children.map(modify),
           },
         ],
+      };
+    case "JSXExpressionContainer":
+      return {
+        type: "ArrowFunctionExpression",
+        id: null,
+        generator: false,
+        async: false,
+        params: [],
+        body: {
+          ...node.expression,
+          extra: {
+            parenthesized: true,
+          },
+        },
+      };
+    case "JSXText":
+      return {
+        type: "Literal",
+        value: node.value,
+        raw: JSON.stringify(node.value),
       };
     default:
       break;

@@ -68,6 +68,23 @@
       );
     });
 
+    test("simple component with a nested HTML element", () => {
+      assert.equal(
+        trim(
+          transform(`
+            function Hello({ name }) {
+              return <h2>Hello <span>{name()}</span></h2>;
+            }
+          `).code
+        ),
+        trim(`
+          function Hello({name}) {
+            return Hydrogen.createElement("h2", {}, ["Hello ", Hydrogen.createElement("span", {}, [() => name()])]);
+          }
+        `)
+      );
+    });
+
     test("index example code", () => {
       assert.equal(
         trim(
