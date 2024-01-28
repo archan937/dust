@@ -24,7 +24,7 @@ To be clear! `hydrogen.js` is NOT meant to fulfill all the expectations of a dro
 - Constraints for reactive behaviour is minimized as much as possible (why trouble the developer?)
 - Components are JSX based
 - Components are only called once (just like SolidJS)
-- A [styled-components](https://styled-components.com/)-like way of adding styling to components
+- A `styled-components`-like way of adding styling to components
 
 Enjoy the library! I would love to receive a shoutout and/or your feedback ;)
 
