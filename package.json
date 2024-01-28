@@ -1,4 +1,25 @@
 {
+  "name": "hydrogen.js",
+  "version": "1.0.0",
+  "description": "A minimalistic reactive Javascript library for building dynamic component-based interfaces.",
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:archan937/hydrogen.js.git"
+  },
+  "keywords": [
+    "reactive",
+    "components",
+    "jsx",
+    "usestate",
+    "styled",
+    "minimalistic"
+  ],
+  "author": "Paul Engel",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/archan937/hydrogen.js/issues"
+  },
+  "homepage": "https://github.com/archan937/hydrogen.js",
   "scripts": {
     "build": "bunx browserify src/index.js > dist/hydrogen.js",
     "test": "bun run qunit"
