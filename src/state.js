@@ -48,7 +48,7 @@ const useState = (value, owner) => {
   function setter(funcOrValue) {
     value =
       typeof funcOrValue === "function" ? funcOrValue(value) : funcOrValue;
-    listeners.forEach((listener) => listener());
+    listeners.forEach((listener) => (listener.__handler__ || listener)());
   }
 
   getter.__setter__ = setter;
@@ -89,7 +89,7 @@ const useObjectState = (object, owner) => {
           break;
         default:
           if (!isFunction(oldValue)) {
-            console.log({ type, path, value, oldValue });
+            // console.log({ type, path, value, oldValue });
           }
       }
     });

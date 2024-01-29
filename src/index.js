@@ -1,17 +1,17 @@
+const element = require("./element");
 const state = require("./state");
 const transformer = require("./transformer");
 
 const components = {};
 
 const register = (name, fn) => {
-  components[name] = fn;
+  components[name.toUpperCase()] = fn;
 };
 
 const transpileCode = () => {
   [...document.getElementsByTagName("script")].forEach((script) => {
     if (script.type.match(/text\/(babel|hydrogen)/)) {
       const { code, components } = transformer.transform(script.innerText);
-      // console.log({ code, components });
       Object.entries(
         new Function(`
         ${code}
@@ -23,9 +23,9 @@ const transpileCode = () => {
 };
 
 const renderElements = () => {
-  [...document.getElementsByTagName("*")].forEach((element) => {
-    if (element.toString().includes("HTMLUnknownElement")) {
-      console.log(element.tagName);
+  [...document.getElementsByTagName("*")].forEach((el) => {
+    if (el.toString().includes("HTMLUnknownElement")) {
+      element.replaceElement(el, components[el.tagName]);
     }
   });
 };
@@ -37,11 +37,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 window.Hydrogen = {
-  createElement: (name, props, children) => {
-    console.log("createElement", { name, props, children });
-  },
-  register,
-  components,
+  ...element,
   ...state,
   ...transformer,
 };

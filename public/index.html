@@ -5,21 +5,65 @@
     <title>Demo - hydrogen.js</title>
     <link rel="icon" href="./icon.svg" />
     <script src="../dist/hydrogen.js"></script>
+    <style>
+      html {
+        font-family: "Arial";
+      }
+    </style>
     <script type="text/babel">
       const { useState } = Hydrogen;
 
-      const log = (msg) => console.log(msg);
-
       function Counter() {
+        console.log("Rendering: <Counter/>");
+        const [counter, setCounter] = useState(0);
+
         return (
-          <h1 a={1}>
-            {name} ({age})
-          </h1>
+          <>
+            <p>
+              Counter: <strong>{counter()}</strong>
+            </p>
+            <button onClick={() => setCounter((counter) => counter + 1)}>
+              Up
+            </button>
+            <button onClick={() => setCounter((counter) => counter - 1)}>
+              Down
+            </button>
+          </>
+        );
+      }
+
+      function SayHello() {
+        console.log("Rendering: <SayHello/>");
+        const [name, setName] = useState("");
+
+        return (
+          <>
+            <div>
+              What is your name?{" "}
+              <input
+                type="text"
+                onKeyUp={(event) => setName(event.target.value)}
+              />
+            </div>
+            <h4>
+              Hello, {name()}!<br />
+              How are you today? :)
+            </h4>
+          </>
         );
       }
 
       function App() {
-        return <Counter />;
+        console.log("Rendering: <App/>");
+        return (
+          <>
+            <Counter />
+            <br />
+            <br />
+            <br />
+            <SayHello />
+          </>
+        );
       }
     </script>
   </head>
