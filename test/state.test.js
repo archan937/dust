@@ -3,9 +3,9 @@
 
   let useState;
 
-  try {
+  if (typeof window === "undefined") {
     useState = require("../src/state").useState;
-  } catch (error) {
+  } else {
     useState = Hydrogen.useState;
   }
 
