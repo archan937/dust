@@ -76,7 +76,7 @@
 
     test("object based reactivity using destructuring", () => {
       const [person, setPerson] = useState({ name: "Paul" });
-      const { name } = person(true);
+      const { name } = person();
 
       let greet;
 
@@ -108,7 +108,9 @@
         lastName: "Engel",
         alterEgo: "PME Legend",
         name() {
-          return `${this.firstName()} ${this.lastName()} a.k.a. ${this.alterEgo()}`;
+          return `${this.firstName() || ""} ${
+            this.lastName() || ""
+          } a.k.a. ${this.alterEgo()}`;
         },
         bio: {
           parents: {
@@ -123,11 +125,11 @@
 
       function sayHello() {
         greet = `
-        My name is ${person().name()}.
-        My father is ${person().bio().parents().father()}.
-        My mother is ${person().bio().parents().mother()}.
-        I am a ${person().bio().profession()}.
-      `;
+          My name is ${person()?.name() || ""}.
+          My father is ${person().bio().parents()?.father() || ""}.
+          My mother is ${person().bio().parents()?.mother() || ""}.
+          I am a ${person().bio().profession()}.
+        `;
       }
 
       assert.equal(greet, undefined);
@@ -137,11 +139,11 @@
       assert.equal(
         trim(greet),
         trim(`
-        My name is Paul Engel a.k.a. PME Legend.
-        My father is Dirk.
-        My mother is Anna.
-        I am a Software Developer.
-      `)
+          My name is Paul Engel a.k.a. PME Legend.
+          My father is Dirk.
+          My mother is Anna.
+          I am a Software Developer.
+        `)
       );
 
       setPerson({
@@ -160,11 +162,11 @@
       assert.equal(
         trim(greet),
         trim(`
-        My name is Bruce Wayne a.k.a. Batman - Dark Knight.
-        My father is Thomas.
-        My mother is Martha.
-        I am a Super Hero.
-      `)
+          My name is Bruce Wayne a.k.a. Batman - Dark Knight.
+          My father is Thomas.
+          My mother is Martha.
+          I am a Super Hero.
+        `)
       );
 
       setPerson((merge) =>
@@ -183,23 +185,55 @@
       assert.equal(
         trim(greet),
         trim(`
-        My name is Clark Kent a.k.a. Superman - Man of Steel.
-        My father is Jonathan.
-        My mother is Martha.
-        I am a Super Hero.
-      `)
+          My name is Clark Kent a.k.a. Superman - Man of Steel.
+          My father is Jonathan.
+          My mother is Martha.
+          I am a Super Hero.
+        `)
       );
 
       setPerson({
-        firstName: "Clark",
-        lastName: "Kent",
-        alterEgo: "Superman - Man of Steel",
+        alterEgo: "Onslaught - That Which Shall Survive",
         bio: {
-          parents: {
-            father: "Jonathan",
-          },
+          profession: "Super Villain",
         },
       });
+
+      assert.equal(
+        trim(greet),
+        trim(`
+          My name is   a.k.a. Onslaught - That Which Shall Survive.
+          My father is .
+          My mother is .
+          I am a Super Villain.
+        `)
+      );
+
+      // TODO: Needs fixing
+
+      // setPerson((merge) =>
+      //   merge({
+      //     firstName: "Harry",
+      //     lastName: "Osborn",
+      //     alterEgo: "Green Goblin - Flying Green Elf",
+      //     bio: {
+      //       parents: {
+      //         father: "Norman",
+      //         mother: "Emily",
+      //       },
+      //     },
+      //   })
+      // );
+
+      // assert.equal(
+      //   trim(greet),
+      //   trim(`
+      //     My name is Harry Osborn a.k.a. Green Goblin - Flying Green Elf.
+      //     My father is Norman.
+      //     My mother is Emily.
+      //     I am a Super Villain.
+      //   `)
+      // );
     });
   });
 })();

@@ -80,17 +80,18 @@ const useObjectState = (object, owner) => {
         : funcOrObject;
 
     microDiff(object, newObject).forEach(({ type, path, value, oldValue }) => {
-      switch (type) {
-        case "CHANGE":
-          const prop = path.pop();
-          const obj = path.reduce((o, k) => o[k](true), getter(true));
-          obj[prop].__setter__(value);
-          path.reduce((o, k) => o[k], object)[prop] = value;
-          break;
-        default:
-          if (!isFunction(oldValue)) {
-            // console.log({ type, path, value, oldValue });
-          }
+      if (!isFunction(oldValue)) {
+        switch (type) {
+          case "CHANGE":
+          case "REMOVE":
+            const prop = path.pop();
+            const obj = path.reduce((o, k) => o[k](true), getter(true));
+            obj[prop].__setter__(value);
+            path.reduce((o, k) => o[k], object)[prop] = value;
+            break;
+          default:
+            console.log({ type, path, value, oldValue });
+        }
       }
     });
   }
