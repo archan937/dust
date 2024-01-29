@@ -36,6 +36,17 @@ Include `hydrogen.js` using a `<script>` tag:
   <script src="../dist/hydrogen.js"></script>
 ```
 
+## Testing hydrogen.js with QUnit
+
+The `hydrogen.js` library is tested with [QUnit](http://qunitjs.com). Check out the test results at [https://archan937.github.io/hydrogen.js/test](https://archan937.github.io/hydrogen.js/test).
+
+### Running tests locally
+
+In order to run tests on your own computer, please start up a web server for the current directory (e.g. `python -m http.server`)
+and open `http://<localhost>/test` in your browser (e.g. `http://localhost:8000/test`).
+
+Here is a list of HTTP static server one-liners: [https://gist.github.com/willurd/5720255](https://gist.github.com/willurd/5720255).
+
 ## Contact me
 
 For support, remarks and requests, please mail me at [pm_engel@icloud.com](mailto:pm_engel@icloud.com).
