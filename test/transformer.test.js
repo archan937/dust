@@ -3,9 +3,9 @@
 
   let transform;
 
-  try {
+  if (typeof window === "undefined") {
     transform = require("../src/transformer").transform;
-  } catch (error) {
+  } else {
     transform = Hydrogen.transform;
   }
 
@@ -29,6 +29,23 @@
         trim(`
           function Hello() {
             return 'Hello';
+          }
+        `)
+      );
+    });
+
+    test("simple fragment", () => {
+      assert.equal(
+        trim(
+          transform(`
+            function Hello() {
+              return <><strong>Hello</strong></>;
+            }
+          `).code
+        ),
+        trim(`
+          function Hello() {
+            return Hydrogen.createElement("", {}, [Hydrogen.createElement("strong", {}, ["Hello"])]);
           }
         `)
       );
@@ -91,30 +108,44 @@
           transform(`
             const { useState } = Hydrogen;
 
-            const log = (msg) => console.log(msg);
-      
             function Counter() {
+              console.log("Rendering: <Counter/>");
+              const [counter, setCounter] = useState(0);
+      
               return (
-                <h1 a={1}>
-                  {name} ({age})
-                </h1>
+                <>
+                  <p>
+                    Counter: <strong>{counter()}</strong>
+                  </p>
+                  <button onClick={() => setCounter((counter) => counter + 1)}>
+                    Up
+                  </button>
+                  <button onClick={() => setCounter((counter) => counter - 1)}>
+                    Down
+                  </button>
+                </>
               );
             }
       
             function App() {
+              console.log("Rendering: <App/>");
               return <Counter />;
             }
           `).code
         ),
         trim(`
           const {useState} = Hydrogen;
-          const log = msg => console.log(msg);
           function Counter() {
-            return Hydrogen.createElement("h1", {
-              a: 1
-            }, ["\\n                  ", () => name, " (", () => age, ")\\n                "]);
-          }
+            console.log("Rendering: <Counter/>");
+            const [counter, setCounter] = useState(0);
+            return Hydrogen.createElement("", {}, ["\\n                  ", Hydrogen.createElement("p", {}, ["\\n                    Counter: ", Hydrogen.createElement("strong", {}, [() => counter()]), "\\n                  "]), "\\n                  ", Hydrogen.createElement("button", {
+              onClick: () => setCounter(counter => counter + 1)
+              }, ["\\n                    Up\\n                  "]), "\\n                  ", Hydrogen.createElement("button", {
+              onClick: () => setCounter(counter => counter - 1)
+              }, ["\\n                    Down\\n                  "]), "\\n                "]);
+            }
           function App() {
+            console.log("Rendering: <App/>");
             return Hydrogen.createElement(Counter, {}, []);
           }
         `)

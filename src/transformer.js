@@ -36,7 +36,6 @@ const modify = (node) => {
     case "JSXElement":
       const name = node.openingElement.name.name;
       const attributes = node.openingElement.attributes;
-      const children = node.children;
       return {
         type: "CallExpression",
         callee: {
@@ -77,7 +76,7 @@ const modify = (node) => {
           },
           {
             type: "ArrayExpression",
-            elements: children.map(modify),
+            elements: node.children.map(modify),
           },
         ],
       };
@@ -94,6 +93,37 @@ const modify = (node) => {
             parenthesized: true,
           },
         },
+      };
+    case "JSXFragment":
+      return {
+        type: "CallExpression",
+        callee: {
+          type: "MemberExpression",
+          object: {
+            type: "Identifier",
+            name: "Hydrogen",
+          },
+          property: {
+            type: "Identifier",
+            name: "createElement",
+          },
+          computed: false,
+        },
+        arguments: [
+          {
+            type: "Literal",
+            value: "",
+            raw: '""',
+          },
+          {
+            type: "ObjectExpression",
+            properties: [],
+          },
+          {
+            type: "ArrayExpression",
+            elements: node.children.map(modify),
+          },
+        ],
       };
     case "JSXText":
       return {
