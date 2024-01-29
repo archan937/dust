@@ -45,10 +45,10 @@
                 onKeyUp={(event) => setName(event.target.value)}
               />
             </div>
-            <h4>
+            <div style="margin-top: 20px; padding: 8px 16px; font-family: Georgia; font-size: 17px; font-style: italic; border-left: 4px solid black">
               Hello, {name()}!<br />
-              How are you today? :)
-            </h4>
+              How are you today?
+            </div>
           </>
         );
       }
@@ -57,10 +57,9 @@
         console.log("Rendering: <App/>");
         return (
           <>
+            <h3 style="margin-top: 75px">Classic reactive counter example:</h3>
             <Counter />
-            <br />
-            <br />
-            <br />
+            <h3 style="margin-top: 75px">Say Hello example:</h3>
             <SayHello />
           </>
         );
@@ -68,6 +67,17 @@
     </script>
   </head>
   <body>
+    <h1>Welcome to hydrogen.js!</h1>
+    <p>
+      <i>
+        A minimalistic reactive Javascript library for building dynamic
+        component-based interfaces.
+      </i>
+    </p>
+    <p>
+      See more at:
+      <a href="https://github.com/archan937/hydrogen.js">Github</a>
+    </p>
     <App />
   </body>
 </html>
