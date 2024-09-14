@@ -7,6 +7,7 @@ const REACTIVITY_LOSS =
 
 const isFunction = (value) => typeof value === "function";
 const isObject = (value) => value === Object(value);
+const isUndefined = (value) => typeof value === "undefined";
 
 const randomHash = () => {
   const chars = "abcdefghijklmnopqrstuvwxyz0123456789";
@@ -38,16 +39,15 @@ const useState = (value, owner) => {
     listeners.push(caller);
   };
 
-  function getter(skipRegister) {
-    if (!skipRegister) {
-      register(arguments.callee.caller);
+  function getter(skipRegister, caller) {
+    if (caller || !skipRegister) {
+      register(caller || arguments.callee.caller);
     }
     return value;
   }
 
   function setter(funcOrValue) {
-    value =
-      typeof funcOrValue === "function" ? funcOrValue(value) : funcOrValue;
+    value = isFunction(funcOrValue) ? funcOrValue(value) : funcOrValue;
     listeners.forEach((listener) => (listener.__handler__ || listener)());
   }
 
@@ -57,7 +57,7 @@ const useState = (value, owner) => {
 };
 
 const useObjectState = (object, owner) => {
-  const [getter] = useState(
+  const [objectState, setObjectState] = useState(
     Object.entries(object).reduce(
       (acc, [key, value]) => ({
         ...acc,
@@ -73,20 +73,50 @@ const useObjectState = (object, owner) => {
     owner
   );
 
-  function setter(funcOrObject) {
-    const newObject =
-      typeof funcOrObject === "function"
-        ? funcOrObject((obj) => deepMerge(deepClone(object), obj))
-        : funcOrObject;
+  const getter = new Proxy(objectState(true), {
+    get: function (target, prop) {
+      if (prop === "___") {
+        return target;
+      }
+      if (prop.match(/__\w+__/)) {
+        return target[prop];
+      }
+      const value = target[prop];
+      return isFunction(value)
+        ? value.bind(getter)(true, arguments.callee.caller)
+        : value;
+    },
+  });
 
+  function setter(funcOrObject) {
+    const newObject = isFunction(funcOrObject)
+      ? funcOrObject((obj) => deepMerge(deepClone(object), obj))
+      : funcOrObject;
+
+    if (isUndefined(object)) {
+      object = newObject;
+      setObjectState(newObject);
+      return;
+    }
+
+    if (isUndefined(newObject)) {
+      object = undefined;
+      setObjectState(undefined);
+      return;
+    }
+
+    console.log({ object, newObject });
     microDiff(object, newObject).forEach(({ type, path, value, oldValue }) => {
       if (!isFunction(oldValue)) {
         switch (type) {
           case "CHANGE":
           case "REMOVE":
             const prop = path.pop();
-            const obj = path.reduce((o, k) => o[k](true), getter(true));
-            obj[prop].__setter__(value);
+            const obj = path.reduce(
+              (o, k) => (isFunction(o[k]) ? o[k](true) : o[k]),
+              objectState(true)
+            );
+            obj.__get__(prop).__setter__(value);
             path.reduce((o, k) => o[k], object)[prop] = value;
             break;
           default:
@@ -95,6 +125,9 @@ const useObjectState = (object, owner) => {
       }
     });
   }
+
+  getter.__get__ = (prop) => objectState(true)[prop];
+  getter.__setter__ = setter;
 
   return [getter, setter];
 };

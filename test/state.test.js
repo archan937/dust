@@ -59,7 +59,7 @@
       let greet;
 
       function sayHello() {
-        greet = `I'm ${person().name()}`;
+        greet = `I'm ${person.name}`;
       }
 
       assert.equal(greet, undefined);
@@ -76,7 +76,7 @@
 
     test("object based reactivity using destructuring", () => {
       const [person, setPerson] = useState({ name: "Paul" });
-      const { name } = person();
+      const { name } = person.___;
 
       let greet;
 
@@ -108,9 +108,9 @@
         lastName: "Engel",
         alterEgo: "PME Legend",
         name() {
-          return `${this.firstName() || ""} ${
-            this.lastName() || ""
-          } a.k.a. ${this.alterEgo()}`;
+          return `${this.firstName || ""} ${this.lastName || ""} a.k.a. ${
+            this.alterEgo || ""
+          }`;
         },
         bio: {
           parents: {
@@ -124,11 +124,12 @@
       let greet;
 
       function sayHello() {
+        console.log("hello!");
         greet = `
-          My name is ${person()?.name() || ""}.
-          My father is ${person().bio().parents()?.father() || ""}.
-          My mother is ${person().bio().parents()?.mother() || ""}.
-          I am a ${person().bio().profession()}.
+          My name is ${person.name || ""}.
+          My father is ${person.bio.parents?.father || ""}.
+          My mother is ${person.bio.parents?.mother || ""}.
+          I am a ${person.bio.profession}.
         `;
       }
 
@@ -211,29 +212,29 @@
 
       // TODO: Needs fixing
 
-      // setPerson((merge) =>
-      //   merge({
-      //     firstName: "Harry",
-      //     lastName: "Osborn",
-      //     alterEgo: "Green Goblin - Flying Green Elf",
-      //     bio: {
-      //       parents: {
-      //         father: "Norman",
-      //         mother: "Emily",
-      //       },
-      //     },
-      //   })
-      // );
+      setPerson((merge) =>
+        merge({
+          firstName: "Harry",
+          lastName: "Osborn",
+          alterEgo: "Green Goblin - Flying Green Elf",
+          bio: {
+            parents: {
+              father: "Norman",
+              mother: "Emily",
+            },
+          },
+        })
+      );
 
-      // assert.equal(
-      //   trim(greet),
-      //   trim(`
-      //     My name is Harry Osborn a.k.a. Green Goblin - Flying Green Elf.
-      //     My father is Norman.
-      //     My mother is Emily.
-      //     I am a Super Villain.
-      //   `)
-      // );
+      assert.equal(
+        trim(greet),
+        trim(`
+          My name is Harry Osborn a.k.a. Green Goblin - Flying Green Elf.
+          My father is Norman.
+          My mother is Emily.
+          I am a Super Villain.
+        `)
+      );
     });
   });
 })();
