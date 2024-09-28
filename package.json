@@ -1,0 +1,38 @@
+{
+  "name": "hydrogen.js",
+  "description": "A minimalistic reactive Javascript library for building dynamic state component-based interfaces.",
+  "version": "1.0.0",
+  "module": "./src/index.js",
+  "license": "MIT",
+  "author": "Paul Engel",
+  "bugs": {
+    "url": "https://github.com/archan937/hydrogen.js/issues"
+  },
+  "homepage": "https://github.com/archan937/hydrogen.js",
+  "keywords": [
+    "reactive",
+    "components",
+    "jsx",
+    "usestate",
+    "styled",
+    "minimalistic"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:archan937/hydrogen.js.git"
+  },
+  "scripts": {
+    "format:check": "prettier --check .",
+    "format": "prettier --write .",
+    "lint": "eslint .",
+    "quality": "bun run format && bun run lint && bun test --coverage"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.11.1",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-prettier": "^5.2.1"
+  },
+  "dependencies": {
+    "lodash.merge": "^4.6.2"
+  }
+}
