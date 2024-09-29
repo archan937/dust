@@ -11,9 +11,13 @@ export default [
       ecmaVersion: 2021,
       sourceType: "module",
       globals: {
+        document: "readonly",
+        DocumentFragment: "readonly",
+        Element: "readonly",
+        exports: "readonly",
+        HTMLElement: "readonly",
         module: "readonly",
         require: "readonly",
-        exports: "readonly",
       },
     },
     rules: {
