@@ -1,11 +1,22 @@
 {
   "name": "hydrogen.js",
   "version": "1.0.0",
-  "description": "A minimalistic reactive Javascript library for building dynamic component-based interfaces.",
+  "author": "Paul Engel",
   "repository": {
     "type": "git",
     "url": "git@github.com:archan937/hydrogen.js.git"
   },
+  "module": "./src/index.js",
+  "devDependencies": {
+    "@eslint/js": "^9.11.1",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-prettier": "^5.2.1"
+  },
+  "bugs": {
+    "url": "https://github.com/archan937/hydrogen.js/issues"
+  },
+  "description": "A minimalistic reactive Javascript library for building dynamic state component-based interfaces.",
+  "homepage": "https://github.com/archan937/hydrogen.js",
   "keywords": [
     "reactive",
     "components",
@@ -14,28 +25,11 @@
     "styled",
     "minimalistic"
   ],
-  "author": "Paul Engel",
   "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/archan937/hydrogen.js/issues"
-  },
-  "homepage": "https://github.com/archan937/hydrogen.js",
   "scripts": {
-    "build": "bunx browserify src/index.js | uglifyjs -cm > dist/hydrogen.js",
-    "test": "bun run qunit"
-  },
-  "dependencies": {
-    "@barelyhuman/astring-jsx": "^2.0.1",
-    "acorn": "^8.11.3",
-    "acorn-jsx": "^5.3.2",
-    "lodash.clonedeep": "^4.5.0",
-    "lodash.merge": "^4.6.2",
-    "microdiff": "^1.3.2"
-  },
-  "devDependencies": {
-    "browserify": "^17.0.0",
-    "jsdom": "^24.0.0",
-    "qunit": "^2.20.0",
-    "uglify-js": "^3.17.4"
+    "format:check": "prettier --check .",
+    "format": "prettier --write .",
+    "lint": "eslint .",
+    "quality": "bun run format && bun run lint && bun test --coverage"
   }
 }

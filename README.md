@@ -1,6 +1,6 @@
 # hydrogen.js
 
-A minimalistic reactive Javascript library for building dynamic component-based interfaces
+A minimalistic reactive Javascript library for building dynamic state component-based interfaces
 
 ## Introduction
 
@@ -20,7 +20,7 @@ To be clear! `hydrogen.js` is NOT meant to fulfill all the expectations of a dro
 
 ## Features
 
-- Run `hydrogen.js` on a static HTML page
+- Import `hydrogen.js` in a static HTML page (no Node.js needed)
 - Constraints for reactive behaviour is minimized as much as possible (why trouble the developer?)
 - Components are JSX based
 - Components are only called once (just like SolidJS)
@@ -35,17 +35,6 @@ Include `hydrogen.js` using a `<script>` tag:
 ```
   <script src="../dist/hydrogen.js"></script>
 ```
-
-## Testing hydrogen.js with QUnit
-
-The `hydrogen.js` library is tested with [QUnit](http://qunitjs.com). Check out the test results at [https://archan937.github.io/hydrogen.js/test](https://archan937.github.io/hydrogen.js/test).
-
-### Running tests locally
-
-In order to run tests on your own computer, please start up a web server for the current directory (e.g. `python -m http.server`)
-and open `http://<localhost>/test` in your browser (e.g. `http://localhost:8000/test`).
-
-Here is a list of HTTP static server one-liners: [https://gist.github.com/willurd/5720255](https://gist.github.com/willurd/5720255).
 
 ## Contact me
 
