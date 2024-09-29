@@ -1,28 +1,28 @@
-const { describe, expect, test } = require("bun:test");
-const { useState } = require("src/use-state");
+const { describe, expect, it, test } = require("bun:test");
+const { useState } = require("src/state");
 
 describe("useState", () => {
   describe("fundamentals", () => {
-    test("storing initial value", () => {
+    it("stores initial value", () => {
       const [counter] = useState(0);
       expect(counter()).toBe(0);
     });
 
-    test("change state using setter", () => {
+    it("changes state using setter", () => {
       const [counter, setCounter] = useState(0);
 
       setCounter(5);
       expect(counter()).toBe(5);
     });
 
-    test("change state using __setter__", () => {
+    it("changes state using __setter__", () => {
       const [counter] = useState(0);
 
       counter.__setter__(6);
       expect(counter()).toBe(6);
     });
 
-    test("change state using prev", () => {
+    it("changes state using prev", () => {
       const [counter, setCounter] = useState(2);
       expect(counter()).toBe(2);
 

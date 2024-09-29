@@ -1,8 +1,8 @@
-const { describe, expect, test } = require("bun:test");
+const { describe, expect, it } = require("bun:test");
 const Hydrogen = require("src");
 
 describe("Hydrogen", () => {
-  test("provides the useState hook", () => {
+  it("provides the useState hook", () => {
     const [counter, setCounter] = Hydrogen.useState(1);
 
     expect(counter()).toBe(1);

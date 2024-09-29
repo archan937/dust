@@ -4,7 +4,7 @@ const CHARS = [
   "0123456789",
 ].join("");
 
-export const randomHash = () => {
+const randomHash = () => {
   let hash = "";
   for (let i = 0; i < 6; i++) {
     hash += CHARS.charAt(Math.floor(Math.random() * CHARS.length));
@@ -12,8 +12,18 @@ export const randomHash = () => {
   return hash;
 };
 
-export const isArray = Array.isArray;
-export const isFunction = (value) => typeof value === "function";
-export const isObject = (value) =>
+const isArray = Array.isArray;
+const isFunction = (value) => typeof value === "function";
+const isNull = (value) => value === null;
+const isObject = (value) =>
   value && typeof value === "object" && !isArray(value);
-export const isUndefined = (value) => typeof value === "undefined";
+const isUndefined = (value) => typeof value === "undefined";
+
+module.exports = {
+  randomHash,
+  isArray,
+  isFunction,
+  isNull,
+  isObject,
+  isUndefined,
+};

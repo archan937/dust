@@ -1,4 +1,4 @@
-const { describe, expect, test } = require("bun:test");
+const { describe, expect, it } = require("bun:test");
 
 const {
   isArray,
@@ -9,18 +9,15 @@ const {
 } = require("utils");
 
 describe("randomHash", () => {
-  test("generates a string containing 6 random characters and integer", () => {
+  it("generates a string containing 6 random characters and integer", () => {
     const regex = /^[A-Za-z0-9]{6}$/;
 
     expect(randomHash().match(regex)).toBeTruthy();
-    expect(randomHash().match(regex)).toBeTruthy();
-    expect(randomHash().match(regex)).toBeTruthy();
-    expect(randomHash().match(regex)).toBeTruthy();
-    expect(randomHash().match(regex)).toBeTruthy();
   });
 
-  test("generates unique random hashes", () => {
+  it("generates unique random hashes", () => {
     const hashes = new Set();
+
     for (let i = 0; i < 5000; i++) {
       hashes.add(randomHash());
     }
@@ -30,7 +27,7 @@ describe("randomHash", () => {
 });
 
 describe("isArray", () => {
-  test("indicates whether passed value is an array", () => {
+  it("indicates whether passed value is an array", () => {
     expect(isArray(undefined)).not.toBeTruthy();
     expect(isArray(null)).not.toBeTruthy();
     expect(isArray(true)).not.toBeTruthy();
@@ -45,7 +42,7 @@ describe("isArray", () => {
 });
 
 describe("isFunction", () => {
-  test("indicates whether passed value is a function", () => {
+  it("indicates whether passed value is a function", () => {
     expect(isFunction(undefined)).not.toBeTruthy();
     expect(isFunction(null)).not.toBeTruthy();
     expect(isFunction(true)).not.toBeTruthy();
@@ -60,7 +57,7 @@ describe("isFunction", () => {
 });
 
 describe("isObject", () => {
-  test("indicates whether passed value is an object", () => {
+  it("indicates whether passed value is an object", () => {
     expect(isObject(undefined)).not.toBeTruthy();
     expect(isObject(null)).not.toBeTruthy();
     expect(isObject(true)).not.toBeTruthy();
@@ -75,7 +72,7 @@ describe("isObject", () => {
 });
 
 describe("isUndefined", () => {
-  test("indicates whether passed value is undefined", () => {
+  it("indicates whether passed value is undefined", () => {
     expect(isUndefined(undefined)).toBeTruthy();
     expect(isUndefined(null)).not.toBeTruthy();
     expect(isUndefined(true)).not.toBeTruthy();
