@@ -3,7 +3,9 @@
   "version": "1.0.0",
   "license": "MIT",
   "scripts": {
-    "dev": "hydrogen dev"
+    "build": "hydrogen build",
+    "dev": "hydrogen dev",
+    "preview": "hydrogen preview"
   },
   "dependencies": {
     "hydrogen.js": "link:hydrogen.js"

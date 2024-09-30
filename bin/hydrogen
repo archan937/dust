@@ -11,9 +11,54 @@ import { transpile } from "src/transpiler";
 
 import pkg from "../package.json" with { type: "json" };
 
-const dev = () => {
-  const ROOT = process.cwd();
+const PORT = 3000;
+const ROOT = process.cwd();
 
+const PLUGINS = [
+  {
+    name: "jsx-transpiler",
+    setup(build) {
+      build.onLoad({ filter: /\.jsx$/ }, async (arg) => {
+        const jsx = await Bun.file(arg.path).text();
+        const contents = transpile(jsx);
+        return {
+          contents,
+          loader: "jsx",
+        };
+      });
+      build.onResolve({ filter: /.*/ }, (arg) => {
+        if (arg.path === pkg.name) {
+          return {
+            path: path.join(import.meta.dir, "../src/index.js"),
+            namespace: "file",
+          };
+        }
+      });
+    },
+  },
+];
+
+const build = async () => {
+  const index = await Bun.file(`${ROOT}/index.html`).text();
+  const source = index.match(/script src=['"](.*\.jsx)['"]/)[1];
+
+  await esbuild.build({
+    entryPoints: [`${ROOT}/${source}`],
+    outdir: `${ROOT}/dist`,
+    bundle: true,
+    minify: true,
+    plugins: PLUGINS,
+  });
+
+  await Bun.write(
+    `${ROOT}/dist/index.html`,
+    index.replace(source, path.basename(source).replace(".jsx", ".js")),
+  );
+
+  await Bun.write(`${ROOT}/dist/sw.js`, "function SW() {}");
+};
+
+const dev = () => {
   const handler = async (req) => {
     const url = new URL(req.url);
     const file = url.pathname.replaceAll("..", "");
@@ -32,30 +77,7 @@ const dev = () => {
           entryPoints: [entryPoint],
           bundle: true,
           write: false,
-          splitting: false,
-          plugins: [
-            {
-              name: "jsx-transpiler",
-              setup(build) {
-                build.onLoad({ filter: /\.jsx$/ }, async (arg) => {
-                  const jsx = await Bun.file(arg.path).text();
-                  const contents = transpile(jsx);
-                  return {
-                    contents,
-                    loader: "jsx",
-                  };
-                });
-                build.onResolve({ filter: /.*/ }, (arg) => {
-                  if (arg.path === pkg.name) {
-                    return {
-                      path: path.join(import.meta.dir, "../src/index.js"),
-                      namespace: "file",
-                    };
-                  }
-                });
-              },
-            },
-          ],
+          plugins: PLUGINS,
         });
         if (result.outputFiles?.length) {
           const content = result.outputFiles[0].text;
@@ -92,14 +114,38 @@ const dev = () => {
   };
 
   const server = Bun.serve({
-    port: 0,
+    port: PORT,
     fetch: handler,
   });
 
   console.log(`
-  ${chalk.cyan(pkg.name.replace(/^./, (m) => m.toUpperCase()))} ${chalk.green(`v${pkg.version}`)}
+  ${chalk.cyan(pkg.name.replace(/^./, (m) => m.toUpperCase()))} ${chalk.green(`v${pkg.version}`)} ${chalk.gray("- DEV")}
   ${chalk.gray("at")} http://localhost:${server.port}/
 `);
+
+  process.once("SIGINT", () => server.stop());
+  process.once("SIGTERM", () => server.stop());
+};
+
+const preview = () => {
+  const server = Bun.serve({
+    port: PORT,
+    async fetch(req) {
+      const url = new URL(req.url);
+      const file = url.pathname.replaceAll("..", "");
+      return new Response(
+        Bun.file(`${ROOT}/dist${file === "/" ? "/index.html" : file}`),
+      );
+    },
+    error() {
+      return new Response(null, { status: 404 });
+    },
+  });
+
+  console.log(`
+    ${chalk.cyan(pkg.name.replace(/^./, (m) => m.toUpperCase()))} ${chalk.green(`v${pkg.version}`)} ${chalk.gray("- PREVIEW")}
+    ${chalk.gray("at")} http://localhost:${server.port}/
+  `);
 
   process.once("SIGINT", () => server.stop());
   process.once("SIGTERM", () => server.stop());
@@ -109,8 +155,14 @@ const index = Bun.argv.indexOf(import.meta.filename);
 const [cmd, ...args] = Bun.argv.slice(index + 1);
 
 switch (cmd || "dev") {
+  case "build":
+    build(...args);
+    break;
   case "dev":
     dev(...args);
+    break;
+  case "preview":
+    preview(...args);
     break;
   default:
     console.log(`Unknown command: ${cmd}`);
