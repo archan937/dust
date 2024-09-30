@@ -139,7 +139,7 @@ const useState = (initialValue, owner) => {
     }
 
     state = unset ? undefined : setValue(state, newValue, merge);
-    listeners.forEach((listener) => listener());
+    listeners.forEach((listener) => (listener.__handler__ || listener)());
 
     if (unset) {
       listeners.length = 0;

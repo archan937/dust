@@ -1,9 +1,15 @@
-import { isFunction, isNull, isUndefined } from "utils";
+import { isFunction, isDomNode, isNull, isUndefined } from "utils";
 
 const addAttributes = (el, props) => {
   Object.entries(props || {}).forEach(([key, value]) => {
     const attr = key.toLowerCase();
-    el.setAttribute(attr, value);
+    const event = attr.match(/on([a-z]+)/)?.[1];
+
+    if (event && isFunction(value)) {
+      el.addEventListener(event, value, false);
+    } else {
+      el.setAttribute(attr, value);
+    }
   });
 };
 
@@ -23,8 +29,21 @@ const addChild = (parent, child) => {
     node = document.createTextNode("");
 
     if (isFunction(child)) {
-      const updateNode = () => (node.nodeValue = child());
-      updateNode();
+      child.__handler__ = () => {
+        const value = child();
+        if (isDomNode(value)) {
+          node = value;
+          parent.replaceChildren(node);
+        } else {
+          if (isDomNode(node)) {
+            node = document.createTextNode("");
+            parent.replaceChildren(node);
+          }
+          node.nodeValue =
+            isNull(value) || isUndefined(value) || value === false ? "" : value;
+        }
+      };
+      child.__handler__();
     } else {
       node.nodeValue = child;
     }
@@ -33,21 +52,27 @@ const addChild = (parent, child) => {
   parent.appendChild(node);
 };
 
-const createElement = (componentOrTagName, props, children) => {
-  if (isFunction(componentOrTagName)) {
-    return componentOrTagName({ ...props, children });
+const createElement = (componentOrTagNameOrNode, props, ...rest) => {
+  if (isDomNode(componentOrTagNameOrNode)) {
+    return componentOrTagNameOrNode;
   }
 
-  const isFragment = !componentOrTagName;
+  const children = rest.flat();
+
+  if (isFunction(componentOrTagNameOrNode)) {
+    return componentOrTagNameOrNode({ ...props, children });
+  }
+
+  const isFragment = !componentOrTagNameOrNode;
   const el = isFragment
     ? document.createDocumentFragment()
-    : document.createElement(componentOrTagName);
+    : document.createElement(componentOrTagNameOrNode);
 
   if (!isFragment) {
     addAttributes(el, props);
   }
 
-  [children].flat().forEach((child) => addChild(el, child));
+  children.forEach((child) => addChild(el, child));
 
   return el;
 };
@@ -59,4 +84,6 @@ const createRoot = (root) => ({
   },
 });
 
-export { createElement, createRoot };
+const Fragment = "";
+
+export { createElement, createRoot, Fragment };

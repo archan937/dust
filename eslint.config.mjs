@@ -19,6 +19,7 @@ export default [
         HTMLElement: "readonly",
         module: "readonly",
         require: "readonly",
+        Text: "readonly",
       },
     },
     plugins: {

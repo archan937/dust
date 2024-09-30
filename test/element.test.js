@@ -97,6 +97,29 @@ describe("createElement", () => {
       );
     });
   });
+
+  describe("rendering state", () => {
+    it("is able to render the classic <Counter/> component", async () => {
+      const Counter = (await import("test/components/Counter")).default;
+      const element = createElement(Counter);
+
+      expect(await f(element.outerHTML)).toBe(
+        await f(`
+          <div class="counter">
+            <p>
+              Counter: <strong>0</strong>
+            </p>
+            <button>
+              Up
+            </button>
+            <button>
+              Down
+            </button>
+          </div>
+        `),
+      );
+    });
+  });
 });
 
 describe("createRoot", () => {

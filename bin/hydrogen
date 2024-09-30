@@ -1,0 +1,117 @@
+#!/usr/bin/env bun
+
+import path from "node:path";
+import fs from "node:fs";
+
+import Bun from "bun";
+import esbuild from "esbuild";
+import chalk from "chalk";
+
+import { transpile } from "src/transpiler";
+
+import pkg from "../package.json" with { type: "json" };
+
+const dev = () => {
+  const ROOT = process.cwd();
+
+  const handler = async (req) => {
+    const url = new URL(req.url);
+    const file = url.pathname.replaceAll("..", "");
+
+    if (file === "/sw.js") {
+      const content = "function SW() {}";
+      return new Response(content, {
+        headers: { "Content-Type": "application/javascript" },
+      });
+    }
+
+    if (file.endsWith(".js") || file.endsWith(".jsx")) {
+      try {
+        const entryPoint = path.resolve(ROOT, url.pathname.slice(1));
+        const result = await esbuild.build({
+          entryPoints: [entryPoint],
+          bundle: true,
+          write: false,
+          splitting: false,
+          plugins: [
+            {
+              name: "jsx-transpiler",
+              setup(build) {
+                build.onLoad({ filter: /\.jsx$/ }, async (arg) => {
+                  const jsx = await Bun.file(arg.path).text();
+                  const contents = transpile(jsx);
+                  return {
+                    contents,
+                    loader: "jsx",
+                  };
+                });
+                build.onResolve({ filter: /.*/ }, (arg) => {
+                  if (arg.path === pkg.name) {
+                    return {
+                      path: path.join(import.meta.dir, "../src/index.js"),
+                      namespace: "file",
+                    };
+                  }
+                });
+              },
+            },
+          ],
+        });
+        if (result.outputFiles?.length) {
+          const content = result.outputFiles[0].text;
+          // console.log(entryPoint, content);
+          return new Response(content, {
+            headers: { "Content-Type": "application/javascript" },
+          });
+        }
+      } catch (error) {
+        console.error(`Error serving file ${file}:`, error);
+        return new Response("Error processing file", { status: 500 });
+      }
+    }
+
+    if (file !== "/" && fs.existsSync(file)) {
+      const content = await Bun.file(file).bytes();
+      return new Response(content, {
+        status: 200,
+        headers: { "Content-Type": getContentType(file) },
+      });
+    }
+
+    const content = await Bun.file(path.join(ROOT, "index.html")).text();
+    return new Response(content, {
+      headers: { "Content-Type": "text/html" },
+    });
+  };
+
+  const getContentType = (file) => {
+    if (file.endsWith(".html")) return "text/html";
+    if (file.endsWith(".css")) return "text/css";
+    if (file.endsWith(".js")) return "application/javascript";
+    return "application/octet-stream";
+  };
+
+  const server = Bun.serve({
+    port: 0,
+    fetch: handler,
+  });
+
+  console.log(`
+  ${chalk.cyan(pkg.name.replace(/^./, (m) => m.toUpperCase()))} ${chalk.green(`v${pkg.version}`)}
+  ${chalk.gray("at")} http://localhost:${server.port}/
+`);
+
+  process.once("SIGINT", () => server.stop());
+  process.once("SIGTERM", () => server.stop());
+};
+
+const index = Bun.argv.indexOf(import.meta.filename);
+const [cmd, ...args] = Bun.argv.slice(index + 1);
+
+switch (cmd || "dev") {
+  case "dev":
+    dev(...args);
+    break;
+  default:
+    console.log(`Unknown command: ${cmd}`);
+}
