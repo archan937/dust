@@ -1,12 +1,6 @@
-const { describe, expect, it } = require("bun:test");
+import { describe, expect, it } from "bun:test";
 
-const {
-  isArray,
-  isFunction,
-  isObject,
-  isUndefined,
-  randomHash,
-} = require("utils");
+import { isArray, isFunction, isObject, isUndefined, randomHash } from "utils";
 
 describe("randomHash", () => {
   it("generates a string containing 6 random characters and integer", () => {

@@ -1,6 +1,7 @@
-const { describe, expect, it } = require("bun:test");
-const { format } = require("prettier");
-const { createElement, createRoot } = require("src/element");
+import { describe, expect, it } from "bun:test";
+import { format } from "prettier";
+
+import { createElement, createRoot } from "src/element";
 
 const f = async (code) =>
   (await format(code, { semi: false, parser: "babel" })).replace(
@@ -50,6 +51,10 @@ describe("createElement", () => {
   describe("children", () => {
     it("renders primitives", () => {
       expect(createElement("h1", {}, ["Hello world!", ""]).outerHTML).toBe(
+        "<h1>Hello world!</h1>",
+      );
+
+      expect(createElement("h1", {}, "Hello world!", "").outerHTML).toBe(
         "<h1>Hello world!</h1>",
       );
 

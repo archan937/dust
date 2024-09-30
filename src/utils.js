@@ -19,11 +19,4 @@ const isObject = (value) =>
   value && typeof value === "object" && !isArray(value);
 const isUndefined = (value) => typeof value === "undefined";
 
-module.exports = {
-  randomHash,
-  isArray,
-  isFunction,
-  isNull,
-  isObject,
-  isUndefined,
-};
+export { isArray, isFunction, isNull, isObject, isUndefined, randomHash };

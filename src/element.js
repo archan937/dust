@@ -1,4 +1,4 @@
-const { isFunction, isNull, isUndefined } = require("utils");
+import { isFunction, isNull, isUndefined } from "utils";
 
 const addAttributes = (el, props) => {
   Object.entries(props || {}).forEach(([key, value]) => {
@@ -59,7 +59,4 @@ const createRoot = (root) => ({
   },
 });
 
-module.exports = {
-  createElement,
-  createRoot,
-};
+export { createElement, createRoot };

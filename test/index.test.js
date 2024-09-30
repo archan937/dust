@@ -1,5 +1,6 @@
-const { describe, expect, it } = require("bun:test");
-const Hydrogen = require("src");
+import { describe, expect, it } from "bun:test";
+
+import Hydrogen from "src";
 
 describe("Hydrogen", () => {
   it("provides the useState hook", () => {
