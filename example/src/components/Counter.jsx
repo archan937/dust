@@ -1,4 +1,4 @@
-import Hydrogen, { useState } from "hydrogen.js";
+import Hydrogen from "hydrogen.js";
 
 function Counter({ counter, setCounter, show, setShow }) {
   console.log("Rendering <Counter/>");
