@@ -18,7 +18,9 @@
     "jsx",
     "usestate",
     "styled",
-    "minimalistic"
+    "minimalistic",
+    "bun",
+    "esbuild"
   ],
   "bin": {
     "hydrogen": "./bin/hydrogen"

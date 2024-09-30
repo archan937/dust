@@ -18,23 +18,19 @@ So in order to comply with the requirements of my other project and also for the
 
 To be clear! `hydrogen.js` is NOT meant to fulfill all the expectations of a drop-in replacement for `React`, `SolidJS` or [styled-components](https://styled-components.com). It just fulfills the basic functionality that I need to for use in a static single HTML page.
 
+> [NOTE: October 1st, 2024]
+>
+> I decided to revamp the entire codebase and went the other way first, which is being able to run a `dev` server (and generate a `build`) as with React or any other similar library. I dropped QUnit and am sticking closely to Bun (FTW). Once satisfied, I will be making Hydrogen.js static HTML page compatible again ^^
+
 ## Features
 
-- Import `hydrogen.js` in a static HTML page (no Node.js needed)
+- Import `hydrogen.js` in a static HTML page (no Node.js needed) [SOON]
 - Constraints for reactive behaviour is minimized as much as possible (why trouble the developer?)
 - Components are JSX based
 - Components are only called once (just like SolidJS)
-- A `styled-components`-like way of adding styling to components
+- A `styled-components`-like way of adding styling to components [SOON]
 
 Enjoy the library! I would love to receive a shoutout and/or your feedback ;)
-
-## Installation
-
-Include `hydrogen.js` using a `<script>` tag:
-
-```
-  <script src="../dist/hydrogen.js"></script>
-```
 
 ## Contact me
 
