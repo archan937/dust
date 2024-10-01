@@ -4,9 +4,9 @@ export * from "./state";
 import * as element from "./element";
 import * as state from "./state";
 
-const Hydrogen = {
+const Dust = {
   ...element,
   ...state,
 };
 
-export default Hydrogen;
+export default Dust;

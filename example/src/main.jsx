@@ -1,4 +1,4 @@
-import Hydrogen, { createRoot } from "hydrogen.js";
+import Dust, { createRoot } from "dust";
 
 import App from "./App";
 

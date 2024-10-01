@@ -1,4 +1,4 @@
-import Hydrogen, { useState } from "hydrogen.js";
+import Dust, { useState } from "dust";
 
 function SayHello() {
   const [name, setName] = useState("");

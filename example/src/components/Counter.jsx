@@ -1,4 +1,4 @@
-import Hydrogen from "hydrogen.js";
+import Dust from "dust";
 
 function Counter({ counter, setCounter, show, setShow }) {
   console.log("Rendering <Counter/>");

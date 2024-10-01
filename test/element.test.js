@@ -24,7 +24,7 @@ describe("createElement", () => {
       expect(element.outerHTML).toBeUndefined();
     });
 
-    it("renders a Hydrogen component", () => {
+    it("renders a Dust component", () => {
       function Component() {
         return createElement("div");
       }

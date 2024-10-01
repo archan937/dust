@@ -1,16 +1,16 @@
 {
-  "name": "hydrogen.js",
+  "name": "dust",
   "description": "A minimalistic reactive Javascript library for building dynamic state component-based interfaces.",
   "version": "1.0.0",
   "license": "MIT",
   "author": "Paul Engel",
-  "homepage": "https://github.com/archan937/hydrogen.js",
+  "homepage": "https://github.com/archan937/dust",
   "repository": {
     "type": "git",
-    "url": "git@github.com:archan937/hydrogen.js.git"
+    "url": "git@github.com:archan937/dust.git"
   },
   "bugs": {
-    "url": "https://github.com/archan937/hydrogen.js/issues"
+    "url": "https://github.com/archan937/dust/issues"
   },
   "keywords": [
     "reactive",
@@ -23,7 +23,7 @@
     "esbuild"
   ],
   "bin": {
-    "hydrogen": "./bin/hydrogen"
+    "dust": "./bin/dust"
   },
   "scripts": {
     "format:check": "prettier --check .",

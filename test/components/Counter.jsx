@@ -1,4 +1,4 @@
-import Hydrogen, { useState } from "src";
+import Dust, { useState } from "src";
 
 function Counter() {
   const [counter, setCounter] = useState(0);

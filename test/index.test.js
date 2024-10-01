@@ -1,10 +1,10 @@
 import { describe, expect, it } from "bun:test";
 
-import Hydrogen from "src";
+import Dust from "src";
 
-describe("Hydrogen", () => {
+describe("Dust", () => {
   it("provides the useState hook", () => {
-    const [counter, setCounter] = Hydrogen.useState(1);
+    const [counter, setCounter] = Dust.useState(1);
 
     expect(counter()).toBe(1);
     setCounter(5);

@@ -4,8 +4,8 @@ export const transpile = (jsx) =>
   ts.transpileModule(jsx, {
     compilerOptions: {
       jsx: ts.JsxEmit.React,
-      jsxFactory: "Hydrogen.createElement",
-      jsxFragmentFactory: "Hydrogen.Fragment",
+      jsxFactory: "Dust.createElement",
+      jsxFragmentFactory: "Dust.Fragment",
       target: ts.ScriptTarget.ES2015,
     },
     transformers: {

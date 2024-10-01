@@ -1,13 +1,13 @@
 {
-  "name": "hydrogen-js-example",
+  "name": "dust-example",
   "version": "1.0.0",
   "license": "MIT",
   "scripts": {
-    "build": "hydrogen build",
-    "dev": "hydrogen dev",
-    "preview": "hydrogen preview"
+    "build": "dust build",
+    "dev": "dust dev",
+    "preview": "dust preview"
   },
   "dependencies": {
-    "hydrogen.js": "link:hydrogen.js"
+    "dust": "link:dust"
   }
 }
