@@ -1,4 +1,4 @@
-import { isFunction, isDomNode, isNull, isUndefined } from "utils";
+import { isDomNode, isFunction, isNull, isUndefined } from "utils";
 
 const addAttributes = (el, props) => {
   Object.entries(props || {}).forEach(([key, value]) => {
