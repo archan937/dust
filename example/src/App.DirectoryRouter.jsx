@@ -5,13 +5,13 @@ function App() {
 
   return (
     <>
-      <a href="/" style="padding-right: 15px">
+      <a href="/dust" style="padding-right: 15px">
         Home
       </a>
-      <a href="/docs/routing" style="padding-right: 15px">
+      <a href="/dust/docs/routing" style="padding-right: 15px">
         Routing Docs
       </a>
-      <a href="/about-me" style="padding-right: 15px">
+      <a href="/dust/about-me" style="padding-right: 15px">
         About Me
       </a>
       <DirectoryRouter pages="src/nextjs-pages" />

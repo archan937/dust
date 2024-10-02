@@ -1,7 +1,7 @@
 import Dust, { useState } from "dust";
 
-import Counter from "../components/Counter";
-import SayHello from "../components/SayHello";
+import Counter from "../../components/Counter";
+import SayHello from "../../components/SayHello";
 
 function Home() {
   const [counter, setCounter] = useState(0);
