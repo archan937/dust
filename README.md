@@ -1,40 +1,66 @@
-# hydrogen.js
+# Dust
 
-A minimalistic reactive Javascript library for building dynamic component-based interfaces
+A minimalistic reactive Javascript library for building dynamic state component-based interfaces
 
 ## Introduction
 
-Why the name `hydrogen.js`?
+Why the name `Dust`?
 
-Well, here is what ChatGPT answered to my question: `"What is the smallest reactive element?"`:
+Well, I was overthinking a new name for this repo together with ChatGPT keep the essence of the library and I suggested `dust`. Here is how ChatGPT responded:
 
-> The smallest reactive element is hydrogen. It is the lightest and simplest element, with the atomic number 1 and symbol H. Hydrogen is highly reactive and can form compounds with various other elements. It is the most abundant element in the universe and plays a crucial role in various chemical reactions and processes.
+> Dust as a concept can actually work really well for a library name, especially if you're looking for something that evokes subtle power or widespread impact. Here's how Dust could fit your needs:
+>
+> Why "Dust"?
+>
+> Lightweight & Pervasive: Dust is small, lightweight, and gets everywhere, which aligns perfectly with a library that's fast, nimble, and efficient. It suggests something that quietly infiltrates and affects everything in its path.
+>
+> Subtle Yet Powerful: In a radioactive or hazardous context, dust can carry powerful substances (like radioactive particles), spreading them far and wide. This could symbolize the wide-reaching efficiency or impact of your library.
+>
+> Transformative: Dust can accumulate and change environments over time, symbolizing the gradual but powerful impact of your small library in applications.
+>
+> Simple & Memorable: "Dust" is short, easy to remember, and has an interesting dual meaning — it can be harmless but, under certain conditions, extremely hazardous or reactive, just like your library might be small but powerful.
 
-As I was searching for a static single HTML page solution for another project I was working on, I obviously started with [React](https://react.dev) but I was concerned about inefficient rerendering of components as I need to update state at a very high rate.
+I was searching for a static single HTML page solution for another project I was working on, I obviously started with [React](https://react.dev) but I was concerned about inefficient rerendering of components as I need to update state at a very high rate.
 
 The second attempt was to use [SolidJS](https://www.solidjs.com) which was a bit more difficult to use on a static HTML page and also, not being able to use destructuring of state was a bit disappointing.
 
-So in order to comply with the requirements of my other project and also for the sake of fun and learning new things, I started with `hydrogen.js`.
+So in order to comply with the requirements of my other project and also for the sake of fun and learning new things, I started with `dust`.
 
-To be clear! `hydrogen.js` is NOT meant to fulfill all the expectations of a drop-in replacement for `React`, `SolidJS` or [styled-components](https://styled-components.com). It just fulfills the basic functionality that I need to for use in a static single HTML page.
+To be clear! `dust` is NOT meant to fulfill all the expectations of a drop-in replacement for `React`, `SolidJS` or [styled-components](https://styled-components.com). It just fulfills the basic functionality that I need to for use in a static single HTML page.
+
+> [NOTE: October 1st, 2024]
+>
+> I decided to revamp the entire codebase and went the other way first, which is being able to run a `dev` server (and generate a `build`) as with React or any other similar library. I dropped QUnit and am sticking closely to Bun (FTW). Once satisfied, I will be making Dust static HTML page compatible again ^^
 
 ## Features
 
-- Run `hydrogen.js` on a static HTML page
 - Constraints for reactive behaviour is minimized as much as possible (why trouble the developer?)
 - Components are JSX based
 - Components are only called once (just like SolidJS)
-- A `styled-components`-like way of adding styling to components
+- Routing similar to `react-router-dom`
+- Routing similar to `Next.js`
+- A `styled-components`-like way of adding styling to components [SOON]
+- Router layout components and route params [SOON]
+- Additional React hooks like useEffect, useRef, etc. [SOON]
+- Import `dust` in a static HTML page (no Node.js or Bun needed) [SOON]
 
 Enjoy the library! I would love to receive a shoutout and/or your feedback ;)
 
-## Installation
+## Try out the example app
 
-Include `hydrogen.js` using a `<script>` tag:
+First, install [Bun](https://bun.sh/) and follow these commands:
 
+```bash
+$ git clone git@github.com:archan937/dust.git
+$ cd dust
+$ bun i
+$ bun link
+$ cd example
+$ bun i
+$ bun dev
 ```
-  <script src="../dist/hydrogen.js"></script>
-```
+
+Now you can visit the application at [http://localhost:3000](http://localhost:3000) in your browser.
 
 ## Contact me
 
