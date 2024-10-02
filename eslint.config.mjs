@@ -1,37 +1,29 @@
 import eslint from "@eslint/js";
 import eslintPluginPrettierRecommended from "eslint-plugin-prettier/recommended";
 import simpleImportSort from "eslint-plugin-simple-import-sort";
+import globals from "globals";
 
 export default [
+  { files: ["**/*.{js,ts,cjs,mjs}"] },
+  {
+    ignores: ["**/node_modules/", "**/dist/"],
+  },
+  {
+    languageOptions: {
+      globals: { ...globals.browser, ...globals.node },
+      parserOptions: {
+        sourceType: "module",
+        ecmaVersion: "latest",
+      },
+    },
+  },
   eslint.configs.recommended,
   eslintPluginPrettierRecommended,
   {
-    files: ["**/*.{js,mjs,cjs}"],
-    ignores: ["**/node_modules/", "**/dist/"],
-    languageOptions: {
-      ecmaVersion: 2021,
-      sourceType: "module",
-      globals: {
-        document: "readonly",
-        DocumentFragment: "readonly",
-        Element: "readonly",
-        exports: "readonly",
-        HTMLElement: "readonly",
-        module: "readonly",
-        require: "readonly",
-        Text: "readonly",
-      },
-    },
     plugins: {
       "simple-import-sort": simpleImportSort,
     },
     rules: {
-      "arrow-body-style": ["error", "as-needed"],
-      "max-params": "off",
-      "no-throw-literal": "off",
-      "no-useless-return": "error",
-      "prefer-destructuring": "off",
-      "prefer-promise-reject-errors": "off",
       "simple-import-sort/exports": "error",
       "simple-import-sort/imports": [
         "error",
@@ -46,6 +38,17 @@ export default [
           ],
         },
       ],
+    },
+  },
+  {
+    rules: {
+      "arrow-body-style": ["error", "as-needed"],
+      "max-params": "off",
+      "no-throw-literal": "off",
+      "no-useless-return": "error",
+      "object-shorthand": "error",
+      "prefer-destructuring": "off",
+      "prefer-promise-reject-errors": "off",
     },
   },
 ];

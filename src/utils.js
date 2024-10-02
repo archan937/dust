@@ -18,10 +18,11 @@ const isNull = (value) => value === null;
 const isUndefined = (value) => typeof value === "undefined";
 
 const isDomNode = (value) =>
-  value instanceof Element || value.constructor.name === "DocumentFragment";
+  value &&
+  (value instanceof Element || value.constructor.name === "DocumentFragment");
 
 const isObject = (value) =>
-  value && typeof value === "object" && !isArray(value);
+  value && Object.prototype.toString.call(value) === "[object Object]";
 
 export {
   isArray,

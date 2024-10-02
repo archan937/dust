@@ -7,18 +7,17 @@ import Bun from "bun";
 import esbuild from "esbuild";
 import chalk from "chalk";
 
-import { transpile } from "src/transpiler";
+import { resolveNextPages, transpile } from "src/transpiler";
 
 import pkg from "../package.json" with { type: "json" };
 
-const PORT = 3000;
 const ROOT = process.cwd();
-
+const PORT = 3000;
 const PLUGINS = [
   {
     name: "jsx-transpiler",
     setup(build) {
-      build.onLoad({ filter: /\.jsx$/ }, async (arg) => {
+      build.onLoad({ filter: /\.(j|t)sx$/ }, async (arg) => {
         const jsx = await Bun.file(arg.path).text();
         const contents = transpile(jsx);
         return {
@@ -38,47 +37,112 @@ const PLUGINS = [
   },
 ];
 
-const build = async () => {
-  const index = await Bun.file(`${ROOT}/index.html`).text();
-  const source = index.match(/script src=['"](.*\.jsx)['"]/)[1];
+const compileNextPages = async (entryPoint) => {
+  const nextPages = [];
 
   await esbuild.build({
-    entryPoints: [`${ROOT}/${source}`],
-    outdir: `${ROOT}/dist`,
+    entryPoints: [entryPoint],
+    bundle: true,
+    write: false,
+    plugins: [
+      {
+        name: "jsx-transpiler",
+        setup(build) {
+          build.onLoad({ filter: /\.(j|t)sx$/ }, async (arg) => {
+            const jsx = await Bun.file(arg.path).text();
+            const { contents, nextPages: pages } = resolveNextPages(jsx);
+            nextPages.push.apply(nextPages, pages);
+            return {
+              contents,
+              loader: "jsx",
+            };
+          });
+          build.onResolve({ filter: /.*/ }, (arg) => {
+            if (arg.path === pkg.name) {
+              return {
+                path: path.join(import.meta.dir, "../src/index.js"),
+                namespace: "file",
+              };
+            }
+          });
+        },
+      },
+    ],
+  });
+
+  const glob = new Bun.Glob("**/*.{js,jsx,ts,tsx}");
+  const pages = nextPages.flatMap((pages) =>
+    Array.from(glob.scanSync(`${ROOT}/${pages}`)).map(
+      (file) => `${pages}:${file}`,
+    ),
+  );
+
+  const jsFile = "/tmp/next-pages.js";
+
+  Bun.write(
+    jsFile,
+    `
+      import { registerRoutes } from 'dust';
+      import * as entryPoint from '${entryPoint}';
+      ${pages.map((page, index) => `import Page${index + 1} from '${ROOT}/${page.replace(":", "/")}';`).join("\n")}
+      const pages = {
+        ${pages.map(
+          (page, index) =>
+            `'/${page
+              .split(":")[1]
+              .replace(/\..*?$/, "")
+              .replace(/\bindex$/, "")}': Page${index + 1}`,
+        )}
+      };
+      registerRoutes(pages);
+    `,
+  );
+
+  return jsFile;
+};
+
+const build = async () => {
+  const index = await Bun.file(`${ROOT}/index.html`).text();
+  const source = index.match(/script src=['"](.*\.(j|t)sx)['"]/)[1];
+
+  const entryPoint = path.join(ROOT, source);
+  const file = path.basename(source).replace(/\.(j|t)sx/, ".js");
+  const outfile = path.join(ROOT, "dist", file);
+
+  await esbuild.build({
+    entryPoints: [await compileNextPages(entryPoint)],
+    outfile,
     bundle: true,
     minify: true,
     plugins: PLUGINS,
   });
 
-  await Bun.write(
-    `${ROOT}/dist/index.html`,
-    index.replace(source, path.basename(source).replace(".jsx", ".js")),
-  );
-
+  await Bun.write(`${ROOT}/dist/index.html`, index.replace(source, `/${file}`));
   await Bun.write(`${ROOT}/dist/sw.js`, "function SW() {}");
 };
 
 const dev = () => {
   const handler = async (req) => {
     const url = new URL(req.url);
-    const file = url.pathname.replaceAll("..", "");
+    const pathname = url.pathname.replaceAll("..", "");
 
-    if (file === "/sw.js") {
+    if (pathname === "/sw.js") {
       const content = "function SW() {}";
       return new Response(content, {
         headers: { "Content-Type": "application/javascript" },
       });
     }
 
-    if (file.endsWith(".js") || file.endsWith(".jsx")) {
+    if (pathname.match(/\.(j|t)sx?$/)) {
       try {
-        const entryPoint = path.resolve(ROOT, url.pathname.slice(1));
+        const entryPoint = path.join(ROOT, pathname);
         const result = await esbuild.build({
-          entryPoints: [entryPoint],
+          entryPoints: [await compileNextPages(entryPoint)],
           bundle: true,
           write: false,
           plugins: PLUGINS,
         });
+
         if (result.outputFiles?.length) {
           const content = result.outputFiles[0].text;
           // console.log(entryPoint, content);
@@ -87,13 +151,23 @@ const dev = () => {
           });
         }
       } catch (error) {
-        console.error(`Error serving file ${file}:`, error);
+        console.error(`Error serving file ${pathname}:`, error);
         return new Response("Error processing file", { status: 500 });
       }
     }
 
-    if (file !== "/" && fs.existsSync(file)) {
-      const content = await Bun.file(file).bytes();
+    let file = path.join(ROOT, pathname);
+    if (!fs.existsSync(file)) {
+      file += "/index.html";
+    }
+
+    const stats = fs.existsSync(file) && fs.statSync(file);
+    if (stats && stats.isFile?.()) {
+      const contentType = getContentType(file);
+      const content =
+        await Bun.file(file)[
+          contentType === "application/octet-stream" ? "bytes" : "text"
+        ]();
       return new Response(content, {
         status: 200,
         headers: { "Content-Type": getContentType(file) },
@@ -104,13 +178,6 @@ const dev = () => {
     return new Response(content, {
       headers: { "Content-Type": "text/html" },
     });
-  };
-
-  const getContentType = (file) => {
-    if (file.endsWith(".html")) return "text/html";
-    if (file.endsWith(".css")) return "text/css";
-    if (file.endsWith(".js")) return "application/javascript";
-    return "application/octet-stream";
   };
 
   const server = Bun.serve({
@@ -132,10 +199,29 @@ const preview = () => {
     port: PORT,
     async fetch(req) {
       const url = new URL(req.url);
-      const file = url.pathname.replaceAll("..", "");
-      return new Response(
-        Bun.file(`${ROOT}/dist${file === "/" ? "/index.html" : file}`),
-      );
+      const pathname = url.pathname.replaceAll("..", "");
+
+      const file = path.join(ROOT, "dist", pathname);
+      const stats = fs.existsSync(file) && fs.statSync(file);
+
+      if (stats && stats.isFile?.()) {
+        const contentType = getContentType(file);
+        const content =
+          await Bun.file(file)[
+            contentType === "application/octet-stream" ? "bytes" : "text"
+          ]();
+        return new Response(content, {
+          status: 200,
+          headers: { "Content-Type": contentType },
+        });
+      }
+
+      const content = await Bun.file(
+        path.join(ROOT, "dist", "index.html"),
+      ).text();
+      return new Response(content, {
+        headers: { "Content-Type": "text/html" },
+      });
     },
     error() {
       return new Response(null, { status: 404 });
@@ -149,6 +235,13 @@ const preview = () => {
 
   process.once("SIGINT", () => server.stop());
   process.once("SIGTERM", () => server.stop());
+};
+
+const getContentType = (file) => {
+  if (file.endsWith(".html")) return "text/html";
+  if (file.endsWith(".css")) return "text/css";
+  if (file.endsWith(".js")) return "application/javascript";
+  return "application/octet-stream";
 };
 
 const index = Bun.argv.indexOf(import.meta.filename);

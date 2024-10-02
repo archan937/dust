@@ -37,10 +37,12 @@ To be clear! `dust` is NOT meant to fulfill all the expectations of a drop-in re
 - Constraints for reactive behaviour is minimized as much as possible (why trouble the developer?)
 - Components are JSX based
 - Components are only called once (just like SolidJS)
-- Routing similar to `react-router-dom` [SOON]
-- Routing similar to `Next.js` [SOON]
+- Routing similar to `react-router-dom`
+- Routing similar to `Next.js`
 - A `styled-components`-like way of adding styling to components [SOON]
-- Import `dust` in a static HTML page (no Node.js needed) [SOON]
+- Router layout components and route params [SOON]
+- Additional React hooks like useEffect, useRef, etc. [SOON]
+- Import `dust` in a static HTML page (no Node.js or Bun needed) [SOON]
 
 Enjoy the library! I would love to receive a shoutout and/or your feedback ;)
 

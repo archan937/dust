@@ -39,9 +39,9 @@ const addChild = (parent, child) => {
             node = document.createTextNode("");
             parent.replaceChildren(node);
           }
-          node.nodeValue =
-            isNull(value) || isUndefined(value) || value === false ? "" : value;
         }
+        node.nodeValue =
+          isNull(value) || isUndefined(value) || value === false ? "" : value;
       };
       child.__handler__();
     } else {
@@ -58,6 +58,10 @@ const createElement = (componentOrTagNameOrNode, props, ...rest) => {
   }
 
   const children = rest.flat();
+
+  if (componentOrTagNameOrNode?.name === "NoElement") {
+    return { ...props, children };
+  }
 
   if (isFunction(componentOrTagNameOrNode)) {
     return componentOrTagNameOrNode({ ...props, children });
@@ -86,4 +90,8 @@ const createRoot = (root) => ({
 
 const Fragment = "";
 
-export { createElement, createRoot, Fragment };
+function NoElement(props) {
+  return props;
+}
+
+export { createElement, createRoot, Fragment, NoElement };
