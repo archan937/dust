@@ -37,6 +37,10 @@ To be clear! `dust` is NOT meant to fulfill all the expectations of a drop-in re
 - Constraints for reactive behaviour is minimized as much as possible (why trouble the developer?)
 - Components are JSX based
 - Components are only called once (just like SolidJS)
+- The expected package script commands:
+  - dust dev
+  - dust build
+  - dust preview
 - Routing similar to `react-router-dom`
 - Routing similar to `Next.js`
 - A `styled-components`-like way of adding styling to components [SOON]
