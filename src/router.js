@@ -1,6 +1,6 @@
 const intercept = () => {
   window.addEventListener("popstate", () => {
-    renderRoute(window.location.toString());
+    renderRoute(window.location);
   });
 
   document.addEventListener("click", (event) => {
@@ -29,25 +29,39 @@ const intercept = () => {
   };
 };
 
+let currentPath;
 let routes = {};
 const handlers = [];
 
-const matchRoute = (handler) => {
-  handlers.push((url) => {
-    const path = new URL(url).pathname;
-    const page = routes[path] || (() => {});
+const matchRoute = (handler) => handlers.push(handler);
+
+const registerRoutes = (newRoutes) => {
+  Object.entries(newRoutes).forEach(([path, route]) => {
+    routes[resolvePath(path)] = route;
+  });
+  renderRoute(window.location);
+};
+
+const renderRoute = (url, handler) => {
+  const path = resolvePath(url);
+
+  if (currentPath === path) return;
+  currentPath = path;
+  console.log(`* Navigating to: ${path}`);
+
+  const page = routes[path] || (() => {});
+  [handler || handlers].flat().forEach((handler) => {
     handler(path, page);
   });
 };
 
-const registerRoutes = (newRoutes) => {
-  routes = { ...routes, ...newRoutes };
-  renderRoute(window.location.toString());
-};
-
-const renderRoute = (url, handler) => {
-  console.log(`* Navigating to: ${new URL(url).pathname}`);
-  [handler || handlers].flat().forEach((handler) => handler(url));
+const resolvePath = (arg) => {
+  const url = arg.toString();
+  const path = (url.match(/^\//) ? url : new URL(url).pathname).replace(
+    /\/+$/,
+    "",
+  );
+  return path || "/";
 };
 
 intercept();
