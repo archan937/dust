@@ -176,7 +176,7 @@ const useState = <T>(
       if (isUndefined(state)) return undefined;
 
       if (Object.prototype.hasOwnProperty.call(state, property)) {
-        register(arguments.callee.caller as () => void);
+        register(arguments.callee.caller as StateHandler);
         const [getter] = useState((state as AnyObject)[property], handler);
         (state as AnyObject)[property] = getter;
       }

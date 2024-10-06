@@ -1,5 +1,5 @@
-type Route = () => void;
-type Routes = Record<string, Route>;
+type Route = (() => Element) | (() => void);
+export type Routes = Record<string, Route>;
 type Handler = (path: string, page: Route) => void;
 
 const intercept = (): void => {
