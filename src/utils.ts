@@ -4,7 +4,7 @@ const CHARS = [
   "0123456789",
 ].join("");
 
-const randomHash = () => {
+const randomHash = (): string => {
   let hash = "";
   for (let i = 0; i < 6; i++) {
     hash += CHARS.charAt(Math.floor(Math.random() * CHARS.length));
@@ -12,16 +12,16 @@ const randomHash = () => {
   return hash;
 };
 
-const isArray = Array.isArray;
-const isFunction = (value) => typeof value === "function";
-const isNull = (value) => value === null;
-const isUndefined = (value) => typeof value === "undefined";
+const isArray = (value): boolean => Array.isArray(value);
+const isFunction = (value): boolean => typeof value === "function";
+const isNull = (value): boolean => value === null;
+const isUndefined = (value): boolean => typeof value === "undefined";
 
-const isDomNode = (value) =>
+const isDomNode = (value): boolean =>
   value &&
   (value instanceof Element || value.constructor.name === "DocumentFragment");
 
-const isObject = (value) =>
+const isObject = (value): boolean =>
   value && Object.prototype.toString.call(value) === "[object Object]";
 
 export {

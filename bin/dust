@@ -28,7 +28,7 @@ const PLUGINS = [
       build.onResolve({ filter: /.*/ }, (arg) => {
         if (arg.path === pkg.name) {
           return {
-            path: path.join(import.meta.dir, "../src/index.js"),
+            path: path.join(import.meta.dir, "../src/index.ts"),
             namespace: "file",
           };
         }
@@ -60,7 +60,7 @@ const compileNextPages = async (entryPoint) => {
           build.onResolve({ filter: /.*/ }, (arg) => {
             if (arg.path === pkg.name) {
               return {
-                path: path.join(import.meta.dir, "../src/index.js"),
+                path: path.join(import.meta.dir, "../src/index.ts"),
                 namespace: "file",
               };
             }
@@ -107,15 +107,19 @@ const build = async () => {
 
   const entryPoint = path.join(ROOT, source);
   const file = path.basename(source).replace(/\.(j|t)sx/, ".js");
-  const outfile = path.join(ROOT, "dist", file);
 
-  await esbuild.build({
+  const build = await esbuild.build({
     entryPoints: [await compileNextPages(entryPoint)],
-    outfile,
     bundle: true,
+    write: false,
     minify: true,
     plugins: PLUGINS,
   });
+
+  await Bun.write(
+    path.join(ROOT, "dist", file),
+    build.outputFiles[0].text.replaceAll('"use strict";', ""),
+  );
 
   await Bun.write(`${ROOT}/dist/index.html`, index.replace(source, `/${file}`));
   await Bun.write(`${ROOT}/dist/sw.js`, "function SW() {}");
@@ -136,15 +140,18 @@ const dev = () => {
     if (pathname.match(/\.(j|t)sx?$/)) {
       try {
         const entryPoint = path.join(ROOT, pathname);
-        const result = await esbuild.build({
+        const build = await esbuild.build({
           entryPoints: [await compileNextPages(entryPoint)],
           bundle: true,
           write: false,
           plugins: PLUGINS,
         });
 
-        if (result.outputFiles?.length) {
-          const content = result.outputFiles[0].text;
+        if (build.outputFiles?.length) {
+          const content = build.outputFiles[0].text.replaceAll(
+            '"use strict";',
+            "",
+          );
           // console.log(entryPoint, content);
           return new Response(content, {
             headers: { "Content-Type": "application/javascript" },

@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-require-imports */
+
 const { describe, expect, it, test } = require("bun:test");
 const { useState } = require("src/state");
 

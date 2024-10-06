@@ -2,9 +2,10 @@ import eslint from "@eslint/js";
 import eslintPluginPrettierRecommended from "eslint-plugin-prettier/recommended";
 import simpleImportSort from "eslint-plugin-simple-import-sort";
 import globals from "globals";
+import tseslint from "typescript-eslint";
 
 export default [
-  { files: ["**/*.{js,ts,cjs,mjs}"] },
+  { files: ["**/*.{js,mjs,cjs,ts}"] },
   {
     ignores: ["**/node_modules/", "**/dist/"],
   },
@@ -12,12 +13,13 @@ export default [
     languageOptions: {
       globals: { ...globals.browser, ...globals.node },
       parserOptions: {
-        sourceType: "module",
-        ecmaVersion: "latest",
+        warnOnUnsupportedTypeScriptVersion: false,
       },
     },
   },
   eslint.configs.recommended,
+  ...tseslint.configs.strict,
+  ...tseslint.configs.stylistic,
   eslintPluginPrettierRecommended,
   {
     plugins: {
@@ -38,10 +40,6 @@ export default [
           ],
         },
       ],
-    },
-  },
-  {
-    rules: {
       "arrow-body-style": ["error", "as-needed"],
       "max-params": "off",
       "no-throw-literal": "off",
@@ -49,6 +47,23 @@ export default [
       "object-shorthand": "error",
       "prefer-destructuring": "off",
       "prefer-promise-reject-errors": "off",
+    },
+  },
+  {
+    files: ["**/*.ts", "**/*.tsx"],
+    languageOptions: {
+      parserOptions: {
+        project: "./tsconfig.json",
+      },
+    },
+    rules: {
+      "@typescript-eslint/explicit-function-return-type": "error",
+      "@typescript-eslint/max-params": ["error", { max: 3 }],
+      "@typescript-eslint/no-empty-function": "off",
+      "@typescript-eslint/only-throw-error": "error",
+      "@typescript-eslint/prefer-destructuring": "error",
+      "@typescript-eslint/prefer-nullish-coalescing": "error",
+      "@typescript-eslint/prefer-promise-reject-errors": "error",
     },
   },
 ];

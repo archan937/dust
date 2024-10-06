@@ -13,6 +13,6 @@ const Dust = {
   ...element,
   ...router,
   ...state,
-};
+} as const;
 
 export default Dust;
