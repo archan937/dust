@@ -51,7 +51,13 @@ const compileNextPages = async (entryPoint) => {
           build.onLoad({ filter: /\.(j|t)sx$/ }, async (arg) => {
             const jsx = await Bun.file(arg.path).text();
             const { contents, nextPages: pages } = resolveNextPages(jsx);
-            nextPages.push.apply(nextPages, pages);
+            pages.forEach((dir) =>
+              nextPages.push(
+                dir.match(/^\./)
+                  ? path.resolve(arg.path, "..", dir).replace(`${ROOT}/`, "")
+                  : dir,
+              ),
+            );
             return {
               contents,
               loader: "jsx",
@@ -77,7 +83,7 @@ const compileNextPages = async (entryPoint) => {
     ),
   );
 
-  const jsFile = "/tmp/next-pages.js";
+  const jsFile = "/tmp/dust-nextjs-pages.js";
 
   Bun.write(
     jsFile,

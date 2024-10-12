@@ -31,7 +31,7 @@ const intercept = (): void => {
   };
 };
 
-let currentPath: string;
+let currentPath: string | undefined;
 const routes: Routes = {};
 const handlers: RouteHandler[] = [];
 
@@ -41,6 +41,8 @@ const registerRoutes = (newRoutes: Routes): void => {
   Object.entries(newRoutes).forEach(([path, route]) => {
     routes[resolvePath(path)] = route;
   });
+  currentPath = undefined;
+  console.log(`* Routes registered`);
   renderRoute(window.location);
 };
 
@@ -54,7 +56,7 @@ const renderRoute = (
   currentPath = path;
   console.log(`* Navigating to: ${path}`);
 
-  const page = routes[path] || ((): void => {});
+  const page = routes[path] || ((): void => { });
   [handler ?? handlers].flat().forEach((handler) => {
     handler(path, page);
   });
