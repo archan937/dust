@@ -1,26 +1,13 @@
+import type {
+  Child,
+  Children,
+  Component,
+  Props,
+  Root,
+  StateHandler,
+} from "types";
+
 import { isDomNode, isFunction, isNull, isUndefined } from "utils";
-
-interface Root {
-  render: (component: Component | (() => Element)) => void;
-}
-
-type Component = (props: Props) => Element;
-
-type Child =
-  | Node
-  | string
-  | number
-  | boolean
-  | null
-  | undefined
-  | (() => Child);
-
-type Props = Record<string, unknown>;
-
-interface HiddenHandlerProperties {
-  __handler__?: () => void;
-}
-type StateHandler = (() => Node | boolean) & HiddenHandlerProperties;
 
 const addAttributes = (el: HTMLElement, props: Props): void => {
   Object.entries(props || {}).forEach(([key, value]) => {
@@ -81,7 +68,7 @@ const addChild = (parent: Node, child: Child): void => {
 const createElement = (
   componentOrTagNameOrNode: string | Component | Node | null,
   props: Props,
-  ...rest: Child[]
+  ...rest: Children
 ): Node | Record<string, unknown> => {
   if (isDomNode(componentOrTagNameOrNode)) {
     return componentOrTagNameOrNode as Node;
@@ -118,7 +105,7 @@ const createRoot = (root: HTMLElement): Root => ({
   },
 });
 
-const Fragment = "";
+const Fragment = "" as const;
 
 function NoElement(props: Props): Props {
   return props;

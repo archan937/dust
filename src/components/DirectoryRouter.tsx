@@ -1,8 +1,9 @@
-import Dust, { useState } from "src";
+import type { Component } from "types";
 
+import Dust, { useState } from "src";
 import { matchRoute } from "src/router";
 
-function DirectoryRouter() {
+function DirectoryRouter(): Component {
   const [route, setRoute] = useState();
   const [page, setPage] = useState();
 

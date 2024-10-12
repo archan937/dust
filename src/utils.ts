@@ -12,17 +12,22 @@ const randomHash = (): string => {
   return hash;
 };
 
-const isArray = (value): boolean => Array.isArray(value);
-const isFunction = (value): boolean => typeof value === "function";
-const isNull = (value): boolean => value === null;
-const isUndefined = (value): boolean => typeof value === "undefined";
+const isArray = (value: unknown): boolean => Array.isArray(value);
+const isFunction = (value: unknown): boolean => typeof value === "function";
+const isNull = (value: unknown): boolean => value === null;
+const isUndefined = (value: unknown): boolean => typeof value === "undefined";
 
-const isDomNode = (value): boolean =>
-  value &&
-  (value instanceof Element || value.constructor.name === "DocumentFragment");
+const isDomNode = (value: unknown): value is Element | DocumentFragment => {
+  if (isUndefined(value)) return false;
+  return (
+    value instanceof Element ||
+    (typeof DocumentFragment !== "undefined" &&
+      value instanceof DocumentFragment)
+  );
+};
 
-const isObject = (value): boolean =>
-  value && Object.prototype.toString.call(value) === "[object Object]";
+const isObject = (value: unknown): boolean =>
+  Boolean(value) && Object.prototype.toString.call(value) === "[object Object]";
 
 export {
   isArray,

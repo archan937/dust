@@ -25,11 +25,12 @@
   "bin": {
     "dust": "./bin/dust"
   },
+  "types": "types.d.ts",
   "scripts": {
-    "format:check": "prettier --check .",
     "format": "prettier --write .",
     "lint": "eslint .",
-    "quality": "bun run format && bun run lint && bun test --coverage"
+    "quality": "bun run typecheck && bun run format && bun run lint && bun test --coverage",
+    "typecheck": "tsc"
   },
   "dependencies": {
     "esbuild": "^0.24.0",

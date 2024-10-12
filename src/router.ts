@@ -1,6 +1,4 @@
-type Route = (() => Element) | (() => void);
-export type Routes = Record<string, Route>;
-type Handler = (path: string, page: Route) => void;
+import type { RouteHandler, Routes } from "types";
 
 const intercept = (): void => {
   window.addEventListener("popstate", () => {
@@ -35,9 +33,9 @@ const intercept = (): void => {
 
 let currentPath: string;
 const routes: Routes = {};
-const handlers: Handler[] = [];
+const handlers: RouteHandler[] = [];
 
-const matchRoute = (handler: Handler): void => void handlers.push(handler);
+const matchRoute = (handler: RouteHandler): void => void handlers.push(handler);
 
 const registerRoutes = (newRoutes: Routes): void => {
   Object.entries(newRoutes).forEach(([path, route]) => {
@@ -48,7 +46,7 @@ const registerRoutes = (newRoutes: Routes): void => {
 
 const renderRoute = (
   url: string | Location | URL,
-  handler?: Handler | Handler[],
+  handler?: RouteHandler | RouteHandler[],
 ): void => {
   const path = resolvePath(url);
 

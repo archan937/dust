@@ -3,7 +3,9 @@
     "allowImportingTsExtensions": true,
     "allowJs": true,
     "baseUrl": ".",
-    "jsx": "react-jsx",
+    "jsx": "react",
+    "jsxFactory": "Dust.createElement",
+    "jsxFragmentFactory": "Dust.Fragment",
     "lib": ["ESNext", "dom"],
     "module": "ESNext",
     "moduleDetection": "force",
@@ -17,6 +19,7 @@
     "verbatimModuleSyntax": true,
     "paths": {
       "src/*": ["src/*"],
+      "types": ["src/types"],
       "utils": ["src/utils"]
     }
   },

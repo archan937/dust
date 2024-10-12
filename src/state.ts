@@ -1,3 +1,14 @@
+import type {
+  AnyObject,
+  AnyObjectWithHiddenGetterProperties,
+  Skippable,
+  StateGetter,
+  StateHandler,
+  StateSetter,
+  StateValue,
+  WithHiddenGetterProperties,
+} from "types";
+
 const {
   isArray,
   isFunction,
@@ -6,33 +17,6 @@ const {
   randomHash,
   // eslint-disable-next-line @typescript-eslint/no-require-imports
 } = require("utils");
-
-interface Skippable {
-  __skip__?: boolean;
-}
-
-interface HiddenGetterProperties {
-  __getter__?: () => unknown;
-  __setter__?: StateSetter<unknown>;
-}
-
-interface HiddenHandlerProperties {
-  __handler__?: () => void;
-  __states__?: Record<string, boolean>;
-}
-
-type Primitive = string | number | boolean | null | undefined;
-type AnyObject = Record<string | symbol, unknown>;
-
-type WithHiddenGetterProperties<T> = T & HiddenGetterProperties;
-type AnyObjectWithHiddenGetterProperties<T> = {
-  [K in keyof T]: WithHiddenGetterProperties<T[K]> & Skippable;
-} & HiddenGetterProperties;
-
-type StateValue<T> = T | Primitive;
-type StateGetter<T> = (() => T) & HiddenGetterProperties;
-type StateSetter<T> = (newValue: T | ((prev: T) => T), merge?: boolean) => void;
-type StateHandler = (() => void) & HiddenHandlerProperties & Skippable;
 
 const MERGE = "__mergeValue__";
 const UNSET = "__unsetValue__";
@@ -129,7 +113,7 @@ const updateState = <T extends object>(
 };
 
 const useState = <T>(
-  initialValue: T | (() => T),
+  initialValue?: T | (() => T),
   handler?: StateHandler,
 ): [StateGetter<T>, StateSetter<T>] => {
   if (isFunction(initialValue)) {
@@ -211,7 +195,7 @@ const useState = <T>(
 };
 
 const useStateWithCaller = function <T>(
-  initialValue: T | (() => T),
+  initialValue?: T | (() => T),
   handler?: StateHandler,
 ): [StateGetter<T>, StateSetter<T>] {
   return useState(
