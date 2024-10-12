@@ -14,7 +14,7 @@ function App() {
       <a href="/dust/about-me" style="padding-right: 15px">
         About Me
       </a>
-      <DirectoryRouter pages="src/nextjs-pages" />
+      <DirectoryRouter pages="./pages" />
     </>
   );
 }

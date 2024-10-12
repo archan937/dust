@@ -1,0 +1,13 @@
+{
+  "name": "dust-example-nextjs-routing",
+  "version": "1.0.0",
+  "license": "MIT",
+  "scripts": {
+    "build": "dust build",
+    "dev": "dust dev",
+    "preview": "dust preview"
+  },
+  "dependencies": {
+    "dust": "link:dust"
+  }
+}

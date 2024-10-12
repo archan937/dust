@@ -59,12 +59,21 @@ $ git clone git@github.com:archan937/dust.git
 $ cd dust
 $ bun i
 $ bun link
-$ cd example
+$ cd example/nextjs-like-routing # or cd example/reactrouter-like-routing
 $ bun i
 $ bun dev
 ```
 
 Now you can visit the application at [http://localhost:3000](http://localhost:3000) in your browser.
+
+You can also build and preview the example application:
+
+```bash
+$ bun run build
+$ bun preview
+```
+
+Now you can visit the application at [http://localhost:3000](http://localhost:3000) in your browser to see the built version.
 
 ## Contact me
 
