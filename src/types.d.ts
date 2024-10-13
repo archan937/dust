@@ -11,6 +11,9 @@ declare namespace Dust {
   type Children = Child[];
   type Component = (props: Props) => Element;
 
+  const Fragment = "";
+  function NoElement(props: Props): Props;
+
   interface CSSProperties {
     display?:
       | "none"
@@ -175,23 +178,15 @@ declare namespace Dust {
     __states__?: Record<string, boolean>;
   }
 
+  function createRoot(root: HTMLElement): Root;
   function createElement(
     componentOrTagNameOrNode: string | Component | Node | null,
     props: Props,
     ...rest: Children
   ): Node | Record<string, unknown>;
 
-  function useState<T>(
-    initialValue?: T | (() => T),
-    handler?: StateHandler,
-  ): [StateGetter<T>, StateSetter<T>];
-
-  function createRoot(root: HTMLElement): Root;
   function matchRoute(handler: RouteHandler): void;
   function registerRoutes(newRoutes: Routes): void;
-
-  const Fragment = "";
-  function NoElement(props: Props): Props;
 }
 
 declare module "src/state" {

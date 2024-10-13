@@ -59,7 +59,7 @@ $ git clone git@github.com:archan937/dust.git
 $ cd dust
 $ bun i
 $ bun link
-$ cd example/nextjs-like-routing # or cd example/reactrouter-like-routing
+$ cd examples/nextjs-like-routing # or examples/reactrouter-like-routing
 $ bun i
 $ bun dev
 ```

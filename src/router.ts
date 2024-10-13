@@ -56,7 +56,7 @@ const renderRoute = (
   currentPath = path;
   console.log(`* Navigating to: ${path}`);
 
-  const page = routes[path] || ((): void => { });
+  const page = routes[path] || ((): void => {});
   [handler ?? handlers].flat().forEach((handler) => {
     handler(path, page);
   });
