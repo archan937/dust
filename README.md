@@ -41,10 +41,10 @@ To be clear! `dust` is NOT meant to fulfill all the expectations of a drop-in re
   - `dust dev`
   - `dust build`
   - `dust preview`
-- Routing similar to `react-router-dom`
-- Routing similar to `Next.js`
+- Routing similar to [`React Router`](https://github.com/archan937/dust/tree/master/examples/reactrouter-like-routing)
+- Routing similar to [`Next.js`](https://github.com/archan937/dust/tree/master/examples/nextjs-like-routing)
 - A `styled-components`-like way of adding styling to components [SOON]
-- Router layout components and route params [SOON]
+- Router layout components [SOON]
 - Additional React hooks like useEffect, useRef, etc. [SOON]
 - Import `dust` in a static HTML page (no Node.js or Bun needed) [SOON]
 
@@ -52,19 +52,28 @@ Enjoy the library! I would love to receive a shoutout and/or your feedback ;)
 
 ## Try out the example app
 
-First, install [Bun](https://bun.sh/) and follow these commands:
+First, install [Bun](https://bun.sh) and follow these commands:
 
 ```bash
 $ git clone git@github.com:archan937/dust.git
 $ cd dust
 $ bun i
 $ bun link
-$ cd example
+$ cd examples/nextjs-like-routing # or examples/reactrouter-like-routing
 $ bun i
 $ bun dev
 ```
 
 Now you can visit the application at [http://localhost:3000](http://localhost:3000) in your browser.
+
+You can also build and preview the example application:
+
+```bash
+$ bun run build
+$ bun preview
+```
+
+Now you can visit the application at [http://localhost:3000](http://localhost:3000) in your browser to see the built version.
 
 ## Contact me
 
