@@ -1,4 +1,6 @@
-import type { RouteHandler, Routes } from "types";
+import type { Params, Route, RouteHandler, Routes } from "types";
+
+import { useState } from "src/state";
 
 const intercept = (): void => {
   window.addEventListener("popstate", () => {
@@ -56,7 +58,28 @@ const renderRoute = (
   currentPath = path;
   console.log(`* Navigating to: ${path}`);
 
-  const page = routes[path] || ((): void => {});
+  let params: Params = {};
+  let page: Route = () => {};
+
+  Object.entries(routes).forEach(([key, value]) => {
+    const regexp = new RegExp(
+      "^" +
+        key.replace(/:[^/]+/g, (param) => {
+          const name = param.slice(1);
+          return `(?<${name}>[^/]+)`;
+        }) +
+        "$",
+    );
+    const match = regexp.exec(path);
+    if (match) {
+      params = match.groups ?? {};
+      page = value;
+    }
+  });
+
+  useParams.__detach__();
+  setParams(params);
+
   [handler ?? handlers].flat().forEach((handler) => {
     handler(path, page);
   });
@@ -71,6 +94,8 @@ const resolvePath = (arg: string | Location | URL): string => {
   return path || "/";
 };
 
+const [useParams, setParams] = useState({});
+
 intercept();
 
-export { matchRoute, registerRoutes };
+export { matchRoute, registerRoutes, useParams };

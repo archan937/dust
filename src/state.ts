@@ -159,6 +159,13 @@ const useState = <T>(
       if (property === "__setter__") return setter;
       if (isUndefined(state)) return undefined;
 
+      if (property === "__detach__") {
+        return () => {
+          state = undefined;
+          handlers.length = 0;
+        };
+      }
+
       if (Object.prototype.hasOwnProperty.call(state, property)) {
         register(arguments.callee.caller as StateHandler);
         const [getter] = useState((state as AnyObject)[property], handler);

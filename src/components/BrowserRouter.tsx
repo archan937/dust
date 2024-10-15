@@ -15,7 +15,7 @@ export const Route = NoElement;
 
 const resolveRoutes = (routes: RouteDefinition[], prefix = "/"): Routes =>
   routes.reduce((acc, { index, path, component, redirect, children }) => {
-    path = `${prefix}${index ? "" : `/${path}`}`.replace("//", "/");
+    path = `${prefix}${index ? "" : `/${path}`}`.replace(/\/+/g, "/");
     if (component) {
       return { ...acc, [path]: component };
     }

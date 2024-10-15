@@ -79,7 +79,7 @@ const compileNextPages = async (entryPoint) => {
   const glob = new Bun.Glob("**/*.{js,jsx,ts,tsx}");
   const pages = nextPages.flatMap((pages) =>
     Array.from(glob.scanSync(`${ROOT}/${pages}`)).map(
-      (file) => `${pages}:${file}`,
+      (file) => `${pages}>${file}`,
     ),
   );
 
@@ -90,12 +90,12 @@ const compileNextPages = async (entryPoint) => {
     `
       import { registerRoutes } from 'dust';
       import * as entryPoint from '${entryPoint}';
-      ${pages.map((page, index) => `import Page${index + 1} from '${ROOT}/${page.replace(":", "/")}';`).join("\n")}
+      ${pages.map((page, index) => `import Page${index + 1} from '${ROOT}/${page.replace(">", "/")}';`).join("\n")}
       const pages = {
         ${pages.map(
           (page, index) =>
             `'/${page
-              .split(":")[1]
+              .split(">")[1]
               .replace(/\..*?$/, "")
               .replace(/\bindex$/, "")}': Page${index + 1}`,
         )}

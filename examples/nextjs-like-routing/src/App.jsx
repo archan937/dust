@@ -11,6 +11,12 @@ function App() {
       <a href="/dust/docs/routing" style="padding-right: 15px">
         Routing Docs
       </a>
+      <a href="/dust/blog/3" style="padding-right: 15px">
+        Blog Article 3
+      </a>
+      <a href="/dust/blog/4" style="padding-right: 15px">
+        Blog Article 4
+      </a>
       <a href="/dust/about-me" style="padding-right: 15px">
         About Me
       </a>

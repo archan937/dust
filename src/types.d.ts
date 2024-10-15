@@ -139,6 +139,7 @@ declare namespace Dust {
     children?: Child | Children;
   } & Record<string, unknown>;
 
+  type Params = Record<string, string>;
   type Route = (() => Element) | (() => void);
   type Routes = Record<string, Route>;
   type RouteHandler = (path: string, page: Route) => void;
@@ -169,6 +170,7 @@ declare namespace Dust {
   }
 
   interface HiddenGetterProperties {
+    __detach__?: () => unknown;
     __getter__?: () => unknown;
     __setter__?: StateSetter<unknown>;
   }
