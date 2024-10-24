@@ -9,6 +9,18 @@ import type {
 
 import { isDomNode, isFunction, isNull, isUndefined } from "utils";
 
+const appendChild = (parent: Node, child: Node): void => {
+  parent.appendChild(child);
+};
+
+const replaceChildren = (parent: Node, children: Node): void => {
+  if (parent instanceof Element || parent instanceof DocumentFragment) {
+    parent.replaceChildren(children);
+  } else {
+    console.warn("Cannot replace children of non-Element node");
+  }
+};
+
 const addAttributes = (el: HTMLElement, props: Props): void => {
   Object.entries(props || {}).forEach(([key, value]) => {
     const attr = key.toLowerCase();
@@ -17,7 +29,7 @@ const addAttributes = (el: HTMLElement, props: Props): void => {
     if (event && isFunction(value)) {
       el.addEventListener(event, value as EventListener, false);
     } else {
-      el.setAttribute(attr, value as string);
+      el.setAttribute(attr, String(value));
     }
   });
 };
@@ -42,13 +54,11 @@ const addChild = (parent: Node, child: Child): void => {
         const value = (child as StateHandler)();
         if (isDomNode(value)) {
           node = value as Node;
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          (parent as any).replaceChildren(node);
+          replaceChildren(parent, node);
         } else {
           if (isDomNode(node)) {
             node = document.createTextNode("");
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            (parent as any).replaceChildren(node);
+            replaceChildren(parent, node);
           }
         }
         (node as Text).nodeValue =
@@ -62,7 +72,7 @@ const addChild = (parent: Node, child: Child): void => {
     }
   }
 
-  parent.appendChild(node);
+  appendChild(parent, node);
 };
 
 const createElement = (
@@ -75,6 +85,24 @@ const createElement = (
   }
 
   const children = rest.flat();
+
+  if (
+    typeof componentOrTagNameOrNode === "object" &&
+    componentOrTagNameOrNode !== null
+  ) {
+    if ("$$typeof" in componentOrTagNameOrNode) {
+      return componentOrTagNameOrNode;
+    }
+    if (
+      "render" in componentOrTagNameOrNode &&
+      typeof componentOrTagNameOrNode.render === "function"
+    ) {
+      return (componentOrTagNameOrNode as { render: Component }).render({
+        ...props,
+        children,
+      });
+    }
+  }
 
   if (isFunction(componentOrTagNameOrNode)) {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
@@ -101,7 +129,7 @@ const createElement = (
 const createRoot = (root: HTMLElement): Root => ({
   render: (component: Component): void => {
     root.innerHTML = "";
-    root.appendChild(createElement(component, {}) as Node);
+    appendChild(root, createElement(component, {}) as Node);
   },
 });
 

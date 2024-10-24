@@ -102,6 +102,28 @@ export const transpile = (jsx: string): string =>
                   );
                 }
               }
+
+              if (ts.isCallExpression(node)) {
+                if (
+                  ts.isIdentifier(node.expression) &&
+                  (node.expression.text === "useState" ||
+                    node.expression.text === "useContext")
+                ) {
+                  return ts.factory.createCallExpression(
+                    ts.factory.createCallExpression(
+                      ts.factory.createPropertyAccessExpression(
+                        node.expression,
+                        ts.factory.createIdentifier("bind"),
+                      ),
+                      undefined,
+                      [ts.factory.createThis()],
+                    ),
+                    undefined,
+                    node.arguments,
+                  );
+                }
+              }
+
               return ts.visitEachChild(node, visit, context);
             };
 

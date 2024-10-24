@@ -15,6 +15,19 @@ const ROOT = process.cwd();
 const PORT = 3000;
 const PLUGINS = [
   {
+    name: "react-dust",
+    setup(build) {
+      build.onResolve({ filter: /.*/ }, (arg) => {
+        if (["react", "react-dom"].includes(arg.path)) {
+          return {
+            path: path.join(import.meta.dir, `../src/${arg.path}/index.ts`),
+            namespace: "file",
+          };
+        }
+      });
+    },
+  },
+  {
     name: "jsx-transpiler",
     setup(build) {
       build.onLoad({ filter: /\.(j|t)sx$/ }, async (arg) => {
@@ -158,7 +171,7 @@ const dev = () => {
             '"use strict";',
             "",
           );
-          // console.log(entryPoint, content);
+
           return new Response(content, {
             headers: { "Content-Type": "application/javascript" },
           });

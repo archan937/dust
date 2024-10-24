@@ -9,9 +9,9 @@ declare namespace Dust {
     | (() => Child);
 
   type Children = Child[];
-  type Component = (props: Props) => Element;
+  type Component<P = Props> = (props: P) => Element;
 
-  const Fragment = "";
+  const Fragment: unique symbol = Symbol("Fragment");
   function NoElement(props: Props): Props;
 
   interface CSSProperties {
