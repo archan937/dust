@@ -143,8 +143,8 @@ const useState = <T>(
   };
 
   const getter: StateGetter<T> = new Proxy(() => undefined, {
-    apply: function __skip__(): T {
-      register(arguments.callee.caller as StateHandler);
+    apply: function __skip__(this: StateHandler): T {
+      register(this);
       if (isObject(state)) {
         const object = isArray(state) ? [] : {};
         Object.keys(state as AnyObject).forEach((key) => {
@@ -154,7 +154,11 @@ const useState = <T>(
       }
       return state as T;
     },
-    get: function __skip__(_target, property: string | symbol): unknown {
+    get: function __skip__(
+      this: StateHandler,
+      _target,
+      property: string | symbol,
+    ): unknown {
       if (property === "__getter__") return () => state;
       if (property === "__setter__") return setter;
       if (isUndefined(state)) return undefined;
@@ -167,7 +171,7 @@ const useState = <T>(
       }
 
       if (Object.prototype.hasOwnProperty.call(state, property)) {
-        register(arguments.callee.caller as StateHandler);
+        register(this);
         const [getter] = useState((state as AnyObject)[property], handler);
         (state as AnyObject)[property] = getter;
       }
@@ -202,13 +206,10 @@ const useState = <T>(
 };
 
 const useStateWithCaller = function <T>(
+  this: StateHandler,
   initialValue?: T | (() => T),
-  handler?: StateHandler,
 ): [StateGetter<T>, StateSetter<T>] {
-  return useState(
-    initialValue,
-    handler ?? (arguments.callee.caller as StateHandler),
-  );
+  return useState(initialValue, this);
 };
 
 exports.useState = useStateWithCaller;
