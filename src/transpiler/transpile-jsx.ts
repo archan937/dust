@@ -1,7 +1,6 @@
-import { highlight } from "cli-highlight";
 import * as ts from "typescript";
 
-import { findHooks, findZeroArgsFunctions } from "./utils";
+import { findHooks, findZeroArgsFunctions, isComponent } from "./utils";
 
 export const transpileJsx = (jsx: string): string => {
   const { outputText } = ts.transpileModule(jsx, {
@@ -21,25 +20,8 @@ export const transpileJsx = (jsx: string): string => {
 
 const transformJsx =
   (context: ts.TransformationContext): ts.Transformer<ts.SourceFile> =>
-  (sourceFile: ts.SourceFile) => {
-    const printer = ts.createPrinter({ newLine: ts.NewLineKind.LineFeed });
-
-    const input = printer.printFile(sourceFile);
-    const visited = visitNode(sourceFile, context) as ts.SourceFile;
-    const output = printer.printFile(visited);
-
-    (async (): Promise<void> => {
-      console.log(
-        "\n\n\n\n==============================================================================================================================\n\n\n\n\n\n",
-      );
-      console.log("// Input\n");
-      console.log(highlight(input));
-      console.log("\n// Output\n");
-      console.log(highlight(output));
-    })();
-
-    return visited;
-  };
+  (sourceFile: ts.SourceFile) =>
+    visitNode(sourceFile, context) as ts.SourceFile;
 
 const transformFunctionDeclaration = (
   node: ts.FunctionDeclaration,
@@ -50,7 +32,7 @@ const transformFunctionDeclaration = (
   }
 
   const hooks = findHooks(node);
-  if (!hooks.length || !node.name) {
+  if ((!hooks.length && !isComponent(node)) || !node.name) {
     return ts.factory.updateFunctionDeclaration(
       node,
       node.modifiers,

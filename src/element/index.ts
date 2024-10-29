@@ -12,18 +12,6 @@ import { isDomNode, isFunction, isNull, isUndefined } from "utils";
 
 type aFunction = (...args: unknown[]) => unknown;
 
-const appendChild = (parent: Node, child: Node): void => {
-  parent.appendChild(child);
-};
-
-const replaceChildren = (parent: Node, children: Node): void => {
-  if (parent instanceof Element || parent instanceof DocumentFragment) {
-    parent.replaceChildren(children);
-  } else {
-    console.warn("Cannot replace children of non-Element node");
-  }
-};
-
 const addAttributes = (el: HTMLElement, props: Props): void => {
   Object.entries(props || {}).forEach(([key, value]) => {
     const attr = key.toLowerCase();
@@ -76,6 +64,18 @@ const addChild = (parent: Node, child: Child): void => {
   }
 
   appendChild(parent, node);
+};
+
+const appendChild = (parent: Node, child: Node): void => {
+  parent.appendChild(child);
+};
+
+const replaceChildren = (parent: Node, children: Node): void => {
+  if (parent instanceof Element || parent instanceof DocumentFragment) {
+    parent.replaceChildren(children);
+  } else {
+    console.warn("Cannot replace children of non-Element node");
+  }
 };
 
 const createElement = (
@@ -148,13 +148,12 @@ const c = (
 };
 
 const e = <T extends aFunction>(fn: T, deps: aFunction[]): T => {
-  let bindings: aFunction[] = [];
-  const func = (): unknown => fn(...bindings);
-  bindings = deps.map((dep) => {
-    const stateGetter = (dep as StateGetter<unknown>).__getter__;
-    return stateGetter ? (): unknown => dep.bind(func)() : dep;
-  });
-  return (() => func()) as T;
+  let funcs: aFunction[] = [];
+  const effect = (): unknown => fn(...funcs);
+  funcs = deps.map((dep) =>
+    (dep as StateGetter<unknown>).__getter__ ? dep.bind(effect) : dep,
+  );
+  return effect as T;
 };
 
 const Fragment = "" as const;

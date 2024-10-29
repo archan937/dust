@@ -13,25 +13,6 @@ const HOOKS = new Set([
   "useDebugValue",
 ]);
 
-export const findZeroArgsFunctions = (node: ts.Node): string[] => {
-  const functions = new Set<string>();
-
-  function visit(node: ts.Node): void {
-    if (ts.isCallExpression(node) && !node.arguments.length) {
-      if (ts.isIdentifier(node.expression)) {
-        functions.add(node.expression.text);
-      } else if (ts.isPropertyAccessExpression(node.expression)) {
-        functions.add(node.expression.getText());
-      }
-    }
-    ts.forEachChild(node, visit);
-  }
-
-  visit(node);
-
-  return Array.from(functions);
-};
-
 export const findHooks = (node: ts.Node): string[] => {
   const hooks = new Set<string>();
 
@@ -56,24 +37,42 @@ export const findHooks = (node: ts.Node): string[] => {
   return Array.from(hooks);
 };
 
-// export const getJsxElementTagName = (
-//   node: ts.JsxElement | ts.JsxSelfClosingElement,
-// ): string => {
-//   if (ts.isJsxElement(node)) {
-//     const { tagName } = node.openingElement;
-//     return ts.isIdentifier(tagName) ? tagName.text : tagName.getText();
-//   } else {
-//     const { tagName } = node;
-//     return ts.isIdentifier(tagName) ? tagName.text : tagName.getText();
-//   }
-// };
+export const findZeroArgsFunctions = (node: ts.Node): string[] => {
+  const functions = new Set<string>();
 
-// export const getJsxElementAttributes = (
-//   node: ts.JsxElement | ts.JsxSelfClosingElement,
-// ): ts.JsxAttribute[] => {
-//   if (ts.isJsxElement(node)) {
-//     return node.openingElement.attributes.properties.filter(ts.isJsxAttribute);
-//   } else {
-//     return node.attributes.properties.filter(ts.isJsxAttribute);
-//   }
-// };
+  function visit(node: ts.Node): void {
+    if (ts.isCallExpression(node) && !node.arguments.length) {
+      if (ts.isIdentifier(node.expression)) {
+        functions.add(node.expression.text);
+      } else if (ts.isPropertyAccessExpression(node.expression)) {
+        functions.add(node.expression.getText());
+      }
+    }
+    ts.forEachChild(node, visit);
+  }
+
+  visit(node);
+
+  return Array.from(functions);
+};
+
+export const isComponent = (node: ts.Node): boolean => {
+  let foundJsx = false;
+
+  function visit(node: ts.Node): void {
+    if (
+      ts.isJsxElement(node) ||
+      ts.isJsxSelfClosingElement(node) ||
+      ts.isJsxFragment(node)
+    ) {
+      foundJsx = true;
+    }
+    if (!foundJsx) {
+      ts.forEachChild(node, visit);
+    }
+  }
+
+  visit(node);
+
+  return foundJsx;
+};

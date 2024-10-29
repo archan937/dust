@@ -1,20 +1,6 @@
 const PORT = 3000;
 const ROOT = typeof process !== "undefined" ? process.cwd() : "";
 
-const randomHash = (): string => {
-  const CHARS = [
-    "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
-    "abcdefghijklmnopqrstuvwxyz",
-    "0123456789",
-  ].join("");
-
-  let hash = "";
-  for (let i = 0; i < 6; i++) {
-    hash += CHARS.charAt(Math.floor(Math.random() * CHARS.length));
-  }
-  return hash;
-};
-
 const getContentType = (file: string): string => {
   if (file.endsWith(".html")) return "text/html";
   if (file.endsWith(".css")) return "text/css";
@@ -38,6 +24,20 @@ const isDomNode = (value: unknown): value is Element | DocumentFragment => {
 
 const isObject = (value: unknown): boolean =>
   Boolean(value) && Object.prototype.toString.call(value) === "[object Object]";
+
+const randomHash = (): string => {
+  const CHARS = [
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
+    "abcdefghijklmnopqrstuvwxyz",
+    "0123456789",
+  ].join("");
+
+  let hash = "";
+  for (let i = 0; i < 6; i++) {
+    hash += CHARS.charAt(Math.floor(Math.random() * CHARS.length));
+  }
+  return hash;
+};
 
 export {
   getContentType,
