@@ -1,3 +1,4 @@
+import fs from "node:fs";
 import path from "node:path";
 
 import esbuild from "esbuild";
@@ -34,18 +35,22 @@ export const build = async (): Promise<void> => {
     return;
   }
 
-  const source = index.match(/script src=['"](.*\.(j|t)sx)['"]/)?.[1];
-  if (!source) {
+  const src = index.match(/script src=['"](.*\.(j|t)sx)['"]/)?.[1];
+  if (!src) {
     return;
   }
 
-  const entryPoint = path.basename(source).replace(/\.(j|t)sx/, ".js");
+  const entryPoint = path.join(ROOT, src);
   const js = await bundle(entryPoint, { minify: true });
 
-  await Bun.write(`${ROOT}/dist/${entryPoint}`, js);
-  await Bun.write(
-    `${ROOT}/dist/index.html`,
-    index.replace(source, `/${entryPoint}`),
+  fs.mkdirSync(path.join(ROOT, "dist"), { recursive: true });
+  fs.writeFileSync(entryPoint.replace(/\.(j|t)sx/, ".js"), js);
+  fs.writeFileSync(path.join(ROOT, "dist", "sw.js"), "function SW() {}");
+  fs.writeFileSync(
+    path.join(ROOT, "dist", "index.html"),
+    index.replace(
+      src,
+      path.join("/", path.basename(src).replace(/\.(j|t)sx/, ".js")),
+    ),
   );
-  await Bun.write(`${ROOT}/dist/sw.js`, "function SW() {}");
 };

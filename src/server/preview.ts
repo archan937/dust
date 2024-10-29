@@ -7,7 +7,7 @@ import { create, type Request, type Response } from "./create";
 
 export const preview = (): number =>
   create(async (req: Request): Promise<Response> => {
-    const url = new URL(req.url ?? "");
+    const url = new URL(`http://${req.headers.host}${req.url}`);
     const pathname = url.pathname.replaceAll("..", "");
 
     const file = path.join(ROOT, "dist", pathname);
