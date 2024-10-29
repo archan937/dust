@@ -1,6 +1,6 @@
 import type { Component, Props, Routes } from "types";
 
-import Dust, { NoElement, useState } from "src";
+import Dust, { NoElement, useState } from "src/core";
 import { matchRoute, registerRoutes } from "src/router";
 
 interface RouteDefinition {

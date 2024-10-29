@@ -1,6 +1,6 @@
 import type { Component } from "types";
 
-import Dust, { useState } from "src";
+import Dust, { useState } from "src/core";
 import { matchRoute } from "src/router";
 
 function DirectoryRouter(): Component {

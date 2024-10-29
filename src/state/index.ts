@@ -9,14 +9,9 @@ import type {
   WithHiddenGetterProperties,
 } from "types";
 
-const {
-  isArray,
-  isFunction,
-  isObject,
-  isUndefined,
-  randomHash,
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-} = require("utils");
+import { isArray, isFunction, isObject, isUndefined, randomHash } from "utils";
+
+type MockFunction = () => undefined;
 
 const MERGE = "__mergeValue__";
 const UNSET = "__unsetValue__";
@@ -112,10 +107,13 @@ const updateState = <T extends object>(
   }
 };
 
-const useState = <T>(
+export function useState<T>(
+  this: StateHandler,
   initialValue?: T | (() => T),
-  handler?: StateHandler,
-): [StateGetter<T>, StateSetter<T>] => {
+): [StateGetter<T>, StateSetter<T>] {
+  // eslint-disable-next-line @typescript-eslint/no-this-alias
+  const handler: StateHandler = this;
+
   if (isFunction(initialValue)) {
     (initialValue as Skippable).__skip__ = true;
     return [initialValue as StateGetter<T>, (): void => {}];
@@ -142,9 +140,9 @@ const useState = <T>(
     handlers.push(callerWithStates);
   };
 
-  const getter: StateGetter<T> = new Proxy(() => undefined, {
-    apply: function __skip__(this: StateHandler): T {
-      register(this);
+  const proxy = (bindValue: null | unknown): ProxyHandler<MockFunction> => ({
+    apply: function __skip__(): T {
+      register(bindValue as StateHandler);
       if (isObject(state)) {
         const object = isArray(state) ? [] : {};
         Object.keys(state as AnyObject).forEach((key) => {
@@ -155,10 +153,13 @@ const useState = <T>(
       return state as T;
     },
     get: function __skip__(
-      this: StateHandler,
-      _target,
+      _: MockFunction,
       property: string | symbol,
     ): unknown {
+      if (property === "bind") {
+        return (binding: unknown) => new Proxy(() => undefined, proxy(binding));
+      }
+
       if (property === "__getter__") return () => state;
       if (property === "__setter__") return setter;
       if (isUndefined(state)) return undefined;
@@ -171,14 +172,19 @@ const useState = <T>(
       }
 
       if (Object.prototype.hasOwnProperty.call(state, property)) {
-        register(this);
-        const [getter] = useState((state as AnyObject)[property], handler);
+        register(bindValue as StateHandler);
+        const [getter] = useState.bind(handler)((state as AnyObject)[property]);
         (state as AnyObject)[property] = getter;
       }
 
       return (state as AnyObject)[property];
     },
-  }) as StateGetter<T>;
+  });
+
+  const getter: StateGetter<T> = new Proxy(
+    () => undefined,
+    proxy(null),
+  ) as StateGetter<T>;
 
   const setter: StateSetter<T> = (
     newValue: T | ((prev: T) => T),
@@ -203,13 +209,4 @@ const useState = <T>(
   };
 
   return [getter, setter];
-};
-
-const useStateWithCaller = function <T>(
-  this: StateHandler,
-  initialValue?: T | (() => T),
-): [StateGetter<T>, StateSetter<T>] {
-  return useState(initialValue, this);
-};
-
-exports.useState = useStateWithCaller;
+}

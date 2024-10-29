@@ -4,10 +4,13 @@ import type {
   Component,
   Props,
   Root,
+  StateGetter,
   StateHandler,
 } from "types";
 
 import { isDomNode, isFunction, isNull, isUndefined } from "utils";
+
+type aFunction = (...args: unknown[]) => unknown;
 
 const appendChild = (parent: Node, child: Node): void => {
   parent.appendChild(child);
@@ -133,10 +136,31 @@ const createRoot = (root: HTMLElement): Root => ({
   },
 });
 
+const c = (
+  fn: (
+    dust: { createElement: unknown; e: unknown; Fragment: unknown },
+    ...args: aFunction[]
+  ) => aFunction,
+  hooks: aFunction[],
+): ((...args: aFunction[]) => unknown) => {
+  const dust = { createElement, e, Fragment };
+  return fn(dust, ...hooks.map((hook) => hook.bind(fn)));
+};
+
+const e = <T extends aFunction>(fn: T, deps: aFunction[]): T => {
+  let bindings: aFunction[] = [];
+  const func = (): unknown => fn(...bindings);
+  bindings = deps.map((dep) => {
+    const stateGetter = (dep as StateGetter<unknown>).__getter__;
+    return stateGetter ? (): unknown => dep.bind(func)() : dep;
+  });
+  return (() => func()) as T;
+};
+
 const Fragment = "" as const;
 
 function NoElement(props: Props): Props {
   return props;
 }
 
-export { createElement, createRoot, Fragment, NoElement };
+export { c, createElement, createRoot, Fragment, NoElement };

@@ -189,10 +189,7 @@ declare namespace Dust {
 
   function matchRoute(handler: RouteHandler): void;
   function registerRoutes(newRoutes: Routes): void;
-}
-
-declare module "src/state" {
-  export function useState<T>(
+  function useState<T>(
     initialValue?: T | (() => T),
     handler?: StateHandler,
   ): [StateGetter<T>, StateSetter<T>];

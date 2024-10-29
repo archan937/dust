@@ -18,13 +18,13 @@ export const bundle = async (
       loader: "jsx",
     },
     bundle: true,
-    write: false,
     minify: false,
     plugins: [jsxTranspiler],
+    write: false,
     ...options,
   });
 
-  return outputFiles?.[0]?.text ?? "";
+  return outputFiles?.[0].text ?? "";
 };
 
 export const build = async (): Promise<void> => {
