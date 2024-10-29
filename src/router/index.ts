@@ -77,7 +77,7 @@ const renderRoute = (
     }
   });
 
-  useParams.__detach__();
+  useParams.__detach__?.();
   setParams(params);
 
   [handler ?? handlers].flat().forEach((handler) => {

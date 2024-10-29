@@ -1,6 +1,6 @@
-import { PORT } from "src/utils";
-
 import { createServer, IncomingMessage, ServerResponse } from "http";
+
+import { PORT } from "src/utils";
 
 export type Request = IncomingMessage & { url: string };
 export type Response = [number, string | Uint8Array, Record<string, string>?];

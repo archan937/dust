@@ -108,11 +108,10 @@ const updateState = <T extends object>(
 };
 
 export function useState<T>(
-  this: StateHandler,
+  this: unknown,
   initialValue?: T | (() => T),
 ): [StateGetter<T>, StateSetter<T>] {
-  // eslint-disable-next-line @typescript-eslint/no-this-alias
-  const handler: StateHandler = this;
+  const handler = this as StateHandler;
 
   if (isFunction(initialValue)) {
     (initialValue as Skippable).__skip__ = true;

@@ -40,17 +40,14 @@ export const build = async (): Promise<void> => {
     return;
   }
 
-  const entryPoint = path.join(ROOT, src);
-  const js = await bundle(entryPoint, { minify: true });
+  const main = path.basename(src).replace(/\.(j|t)sx/, ".js");
+  const js = await bundle(path.join(ROOT, src), { minify: true });
 
   fs.mkdirSync(path.join(ROOT, "dist"), { recursive: true });
-  fs.writeFileSync(entryPoint.replace(/\.(j|t)sx/, ".js"), js);
   fs.writeFileSync(path.join(ROOT, "dist", "sw.js"), "function SW() {}");
+  fs.writeFileSync(path.join(ROOT, "dist", main), js);
   fs.writeFileSync(
     path.join(ROOT, "dist", "index.html"),
-    index.replace(
-      src,
-      path.join("/", path.basename(src).replace(/\.(j|t)sx/, ".js")),
-    ),
+    index.replace(src, path.join("/", main)),
   );
 };
