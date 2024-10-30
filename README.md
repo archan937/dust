@@ -32,6 +32,8 @@ To be clear! `dust` is NOT meant to fulfill all the expectations of a drop-in re
 >
 > I decided to revamp the entire codebase and went the other way first, which is being able to run a `dev` server (and generate a `build`) as with React or any other similar library. I dropped QUnit and am sticking closely to Bun (FTW). Once satisfied, I will be making Dust static HTML page compatible again ^^
 
+Enjoy the library! I would love to receive a shoutout and/or your feedback ;)
+
 ## Features
 
 - Constraints for reactive behaviour is minimized as much as possible (why trouble the developer?)
@@ -43,12 +45,23 @@ To be clear! `dust` is NOT meant to fulfill all the expectations of a drop-in re
   - `dust preview`
 - Routing similar to [`React Router`](https://github.com/archan937/dust/tree/master/examples/reactrouter-like-routing)
 - Routing similar to [`Next.js`](https://github.com/archan937/dust/tree/master/examples/nextjs-like-routing)
-- A `styled-components`-like way of adding styling to components [SOON]
-- Router layout components [SOON]
-- Additional React hooks like useEffect, useRef, etc. [SOON]
-- Import `dust` in a static HTML page (no Node.js or Bun needed) [SOON]
 
-Enjoy the library! I would love to receive a shoutout and/or your feedback ;)
+## Coming soon
+
+- Mock `React` and `React DOM` with `Dust` to support libraries like [MUI](https://mui.com) in `dust` applications
+- Add a `create-dust` command to create a new `dust` application (e.g. `bunx create-dust my-app`)
+- Run `dust` applications as a desktop application (using [Wails](https://wails.io/))
+- Run `dust` applications as a mobile application (using [Capacitor](https://capacitorjs.com/))
+- Import `dust` "standalone" in a static HTML page (no Node.js or Bun needed)
+- Additional React hooks like `useContext`, `useEffect`, `useRef`, etc.
+- A `styled-components`-like way of adding styling to components
+- Router layout components
+
+## TODO
+
+- Rewrite [state tests](https://github.com/archan937/dust/tree/master/src/state/index.test.js) in TypeScript using the transpiler and thus being strict compatible
+- Regain >90% test coverage
+- Create an awesome dust-based website for Dust ^^
 
 ## Try out the example app
 
