@@ -59,7 +59,7 @@ Enjoy the library! I would love to receive a shoutout and/or your feedback ;)
 
 ## TODO
 
-- Rewrite [state tests](https://github.com/archan937/dust/tree/master/src/state/index.test.js) in TypeScript using the transpiler and thus being strict compatible
+- Rewrite [state tests](https://github.com/archan937/dust/tree/master/test/state/index.test.js) in TypeScript using the transpiler and thus being strict compatible
 - Regain >90% test coverage
 - Create an awesome dust-based website for Dust ^^
 
