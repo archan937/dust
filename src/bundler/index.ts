@@ -29,7 +29,7 @@ export const bundle = async (
 };
 
 export const build = async (): Promise<void> => {
-  const index = await Bun.file(`${ROOT}/index.html`).text();
+  const index = fs.readFileSync(path.join(ROOT, "index.html"), "utf8");
   if (!index) {
     console.error("index.html not found");
     return;

@@ -17,16 +17,17 @@ export const preview = (): number =>
       const contentType = getContentType(file);
       return [
         200,
-        await Bun.file(file)[
-          contentType === "application/octet-stream" ? "bytes" : "text"
-        ](),
+        fs.readFileSync(
+          file,
+          contentType === "application/octet-stream" ? null : "utf8",
+        ),
         { "Content-Type": contentType },
       ];
     }
 
     return [
       200,
-      await Bun.file(path.join(ROOT, "dist", "index.html")).text(),
+      fs.readFileSync(path.join(ROOT, "dist", "index.html"), "utf8"),
       { "Content-Type": "text/html" },
     ];
   });

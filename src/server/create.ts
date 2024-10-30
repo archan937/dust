@@ -3,7 +3,7 @@ import { createServer, IncomingMessage, ServerResponse } from "http";
 import { PORT } from "src/utils";
 
 export type Request = IncomingMessage & { url: string };
-export type Response = [number, string | Uint8Array, Record<string, string>?];
+export type Response = [number, string | Buffer, Record<string, string>?];
 export type Handler = (req: Request) => Promise<Response>;
 
 export const create = (handler: Handler): number => {

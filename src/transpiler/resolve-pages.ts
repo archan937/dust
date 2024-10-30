@@ -1,4 +1,6 @@
-import path from "path";
+import path from "node:path";
+
+import { globSync } from "glob";
 import * as ts from "typescript";
 
 import { ROOT } from "src/utils";
@@ -68,12 +70,13 @@ export const resolvePages = (dirname: string, jsx: string): ResolvedPages => {
     },
   }).outputText;
 
-  const glob = new Bun.Glob("**/*.{js,jsx,ts,tsx}");
-  const pages = pagesDirs.flatMap((pages) =>
-    Array.from(glob.scanSync(`${ROOT}/${pages}`)).map(
-      (file) => `${pages}>${file}`,
-    ),
-  );
+  const pages = pagesDirs.flatMap((pages) => {
+    const pattern = `${ROOT}/${pages}/**/*.{js,jsx,ts,tsx}`;
+    const prefix = new RegExp(`^${pages.replace(/^\//, "")}/`);
+    return globSync(pattern, {
+      absolute: false,
+    }).map((file) => `${pages}>${file.replace(prefix, "")}`);
+  });
 
   return { contents, pages };
 };

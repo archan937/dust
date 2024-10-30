@@ -1,5 +1,7 @@
+import fs from "node:fs";
+import path from "node:path";
+
 import esbuild from "esbuild";
-import path from "path";
 
 import { resolvePages, transpileJsx } from "src/transpiler";
 
@@ -9,7 +11,7 @@ export const pagesResolver = (acc: string[]): esbuild.Plugin => ({
   name: "pages-resolver",
   setup(build: esbuild.PluginBuild): void {
     build.onLoad({ filter: /\.(j|t)sx$/ }, async (arg) => {
-      const jsx = await Bun.file(arg.path).text();
+      const jsx = fs.readFileSync(arg.path, "utf8");
       const { contents, pages } = resolvePages(path.resolve(arg.path), jsx);
       acc.splice(acc.length, 0, ...pages);
       return {
@@ -46,7 +48,7 @@ export const jsxTranspiler = {
   name: "jsx-transpiler",
   setup(build: esbuild.PluginBuild): void {
     build.onLoad({ filter: /\.(j|t)sx$/ }, async (arg) => {
-      const jsx = await Bun.file(arg.path).text();
+      const jsx = fs.readFileSync(arg.path, "utf8");
       const contents = transpileJsx(jsx);
       return {
         contents,
