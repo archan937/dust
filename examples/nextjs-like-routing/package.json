@@ -4,7 +4,9 @@
   "license": "MIT",
   "scripts": {
     "build": "dust build",
+    "build:desktop": "dust build:desktop",
     "dev": "dust dev",
+    "dev:desktop": "dust dev:desktop",
     "preview": "dust preview"
   },
   "dependencies": {

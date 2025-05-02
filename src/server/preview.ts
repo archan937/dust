@@ -8,7 +8,11 @@ import { create, type Request, type Response } from "./create";
 export const preview = (): number =>
   create(async (req: Request): Promise<Response> => {
     const url = new URL(`http://${req.headers.host}${req.url}`);
-    const pathname = url.pathname.replaceAll("..", "");
+
+    const pathname =
+      path.dirname(req.headers.referer ?? "") === path.dirname(url.href)
+        ? "main.js"
+        : url.pathname.replaceAll("..", "");
 
     const file = path.join(ROOT, "dist", pathname);
     const stats = fs.existsSync(file) && fs.statSync(file);

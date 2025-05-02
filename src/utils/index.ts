@@ -1,3 +1,7 @@
+import pkg from "../../package.json" with { type: "json" };
+
+const NAME = pkg.name.replace(/^./, (m) => m.toUpperCase());
+const VERSION = pkg.version;
 const PORT = 3000;
 const ROOT = typeof process !== "undefined" ? process.cwd() : "";
 
@@ -47,7 +51,9 @@ export {
   isNull,
   isObject,
   isUndefined,
+  NAME,
   PORT,
   randomHash,
   ROOT,
+  VERSION,
 };

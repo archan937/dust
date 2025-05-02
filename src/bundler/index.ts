@@ -28,7 +28,9 @@ export const bundle = async (
   return outputFiles?.[0].text ?? "";
 };
 
-export const build = async (): Promise<void> => {
+export const build = async (
+  outdir = path.join(ROOT, "dist"),
+): Promise<void> => {
   const index = fs.readFileSync(path.join(ROOT, "index.html"), "utf8");
   if (!index) {
     console.error("index.html not found");
@@ -43,11 +45,10 @@ export const build = async (): Promise<void> => {
   const main = path.basename(src).replace(/\.(j|t)sx/, ".js");
   const js = await bundle(path.join(ROOT, src), { minify: true });
 
-  fs.mkdirSync(path.join(ROOT, "dist"), { recursive: true });
-  fs.writeFileSync(path.join(ROOT, "dist", "sw.js"), "function SW() {}");
-  fs.writeFileSync(path.join(ROOT, "dist", main), js);
+  fs.mkdirSync(outdir, { recursive: true });
+  fs.writeFileSync(path.join(outdir, main), js);
   fs.writeFileSync(
-    path.join(ROOT, "dist", "index.html"),
-    index.replace(src, path.join("/", main)),
+    path.join(outdir, "index.html"),
+    index.replace(src, `./${main}`),
   );
 };

@@ -29,7 +29,9 @@
   "scripts": {
     "format": "prettier --write .",
     "lint": "eslint .",
-    "quality": "bun run typecheck && bun run format && bun run lint && bun test --coverage",
+    "quality": "bun run typecheck && bun run format && bun run lint && bun run test:coverage",
+    "test:coverage": "bun test --coverage",
+    "test": "bun test",
     "typecheck": "tsc"
   },
   "dependencies": {
