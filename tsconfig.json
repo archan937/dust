@@ -1,0 +1,30 @@
+{
+  "compilerOptions": {
+    "allowImportingTsExtensions": true,
+    "allowJs": true,
+    "baseUrl": ".",
+    "jsx": "react",
+    "jsxFactory": "Dust.createElement",
+    "jsxFragmentFactory": "Dust.Fragment",
+    "lib": ["ESNext", "dom"],
+    "module": "ESNext",
+    "moduleDetection": "force",
+    "moduleResolution": "bundler",
+    "noEmit": true,
+    "noFallthroughCasesInSwitch": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "strictNullChecks": true,
+    "target": "ESNext",
+    "verbatimModuleSyntax": true,
+    "paths": {
+      "dust": ["src"],
+      "src/*": ["src/*"],
+      "test/*": ["test/*"],
+      "types": ["src/types"],
+      "utils": ["src/utils"]
+    }
+  },
+  "include": ["**/*.ts", "**/*.tsx"],
+  "exclude": ["node_modules", "**/dist"]
+}
