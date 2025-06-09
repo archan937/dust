@@ -1,5 +1,6 @@
 {
   "name": "dust",
+  "type": "module",
   "description": "A minimalistic reactive Javascript library for building dynamic state component-based interfaces.",
   "version": "1.0.0",
   "license": "MIT",
