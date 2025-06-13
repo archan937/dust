@@ -1,0 +1,27 @@
+#!/usr/bin/env bun
+
+import chalk from 'chalk';
+
+import * as server from '../src/server';
+import { NAME, VERSION } from '../src/utils';
+
+const dev = async () => {
+  const port = server.dev();
+  console.log(`
+    ${chalk.cyan(NAME)} ${chalk.green(`v${VERSION}`)} ${chalk.gray('- DEV')}
+    ${chalk.gray('at')} http://localhost:${port}/
+  `);
+};
+
+(async () => {
+  const index = process.argv.indexOf(process.argv[1]);
+  const [cmd] = process.argv.slice(index + 1);
+
+  switch (cmd) {
+    case 'dev':
+      await dev();
+      break;
+    default:
+      console.log(`Unknown command: ${cmd}`);
+  }
+})();

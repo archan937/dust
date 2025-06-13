@@ -1,0 +1,16 @@
+#!/usr/bin/env bun
+
+import { spawn } from 'bun';
+
+const index = Bun.argv.indexOf(Bun.argv[1]);
+const [cmd] = Bun.argv.slice(index + 1) ?? ['dev'];
+const flags = ['dev'].includes(cmd) ? ['--watch'] : [];
+
+const proc = spawn({
+  cmd: ['bun', ...flags, `${import.meta.dir}/run`, cmd],
+  stdout: 'inherit',
+  stderr: 'inherit',
+  stdin: 'inherit',
+});
+
+await proc.exited;

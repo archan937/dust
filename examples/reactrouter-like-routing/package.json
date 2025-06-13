@@ -1,0 +1,11 @@
+{
+  "name": "dust-example-reactrouter-routing",
+  "version": "1.0.0",
+  "license": "MIT",
+  "scripts": {
+    "dev": "dust dev"
+  },
+  "dependencies": {
+    "dust": "link:dust"
+  }
+}
