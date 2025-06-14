@@ -154,6 +154,16 @@ describe('Transpiler', () => {
     expect(js).toContain('foo: "bar"');
   });
 
+  test('transpiles fragments', () => {
+    const jsx = `
+      function App() {
+        return <><div foo="bar" /></>;
+      }
+    `;
+    const js = transpile(jsx);
+    expect(js).toContain('foo: "bar"');
+  });
+
   test('throws on unknown JSX element type', () => {
     expect(() => {
       transpile('function App() { return <[object Object] />; }');
