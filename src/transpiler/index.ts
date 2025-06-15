@@ -1,102 +1,62 @@
-import { types as t } from '@babel/core';
-import { generate } from '@babel/generator';
-import { parse } from '@babel/parser';
-import traverse from '@babel/traverse';
+import babelPluginTransformReactJsx from '@babel/plugin-transform-react-jsx';
+import babelPluginTransformTypescript from '@babel/plugin-transform-typescript';
+import * as babel from '@babel/standalone';
 
-const getType = (
-  name: t.JSXIdentifier | t.JSXMemberExpression | t.JSXNamespacedName,
-): t.StringLiteral | t.MemberExpression => {
-  if (t.isJSXIdentifier(name)) {
-    return t.stringLiteral(name.name);
-  } else if (t.isJSXMemberExpression(name)) {
-    const object = t.isJSXIdentifier(name.object)
-      ? t.identifier(name.object.name)
-      : (getType(name.object) as t.MemberExpression);
-    return t.memberExpression(object, t.identifier(name.property.name));
-  } else if (t.isJSXNamespacedName(name)) {
-    return t.stringLiteral(`${name.namespace.name}:${name.name.name}`);
+import tsconfig from '../../tsconfig.json' with { type: 'json' };
+
+babel.registerPlugin(
+  '@babel/plugin-transform-react-jsx',
+  babelPluginTransformReactJsx,
+);
+
+babel.registerPlugin(
+  '@babel/plugin-transform-typescript',
+  babelPluginTransformTypescript,
+);
+
+const cache = new Map<string, string>();
+
+const hash = (str: string): string => {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    const char = str.charCodeAt(i);
+    hash = (hash << 5) - hash + char;
+    hash = hash & hash;
   }
-  throw new Error('Unknown JSX element type');
+  return hash.toString(36);
 };
 
-export const transpile = (code: string): string => {
-  const ast = parse(code, {
-    sourceType: 'module',
-    plugins: ['jsx', 'typescript'],
-  });
+export const transpile = (code: string, filename = 'virtual.jsx'): string => {
+  const cacheKey = `${filename}:${hash(code)}`;
 
-  traverse(ast, {
-    JSXElement(path) {
-      const createElement = t.memberExpression(
-        t.identifier('Dust'),
-        t.identifier('createElement'),
-      );
+  if (cache.has(cacheKey)) {
+    return cache.get(cacheKey) ?? '';
+  }
 
-      const jsxToCreateElement = (node: t.JSXElement): t.Expression => {
-        if (t.isJSXElement(node)) {
-          const type = getType(node.openingElement.name);
-          const props = node.openingElement.attributes.length
-            ? t.objectExpression(
-                node.openingElement.attributes
-                  .map((attr) => {
-                    if (t.isJSXSpreadAttribute(attr)) {
-                      return t.spreadElement(attr.argument);
-                    }
-                    if (
-                      t.isJSXAttribute(attr) &&
-                      t.isJSXIdentifier(attr.name)
-                    ) {
-                      let value: t.Expression;
-                      if (!attr.value) {
-                        value = t.booleanLiteral(true);
-                      } else if (t.isJSXExpressionContainer(attr.value)) {
-                        value = t.isJSXEmptyExpression(attr.value.expression)
-                          ? t.identifier('undefined')
-                          : attr.value.expression;
-                      } else if (t.isStringLiteral(attr.value)) {
-                        // eslint-disable-next-line @typescript-eslint/prefer-destructuring
-                        value = attr.value;
-                      } else {
-                        value = t.identifier('undefined');
-                      }
-                      return t.objectProperty(
-                        t.identifier(attr.name.name),
-                        value,
-                      );
-                    }
-                    return null;
-                  })
-                  .filter((x): x is t.ObjectProperty | t.SpreadElement => !!x),
-              )
-            : t.nullLiteral();
+  try {
+    const result = babel.transform(code, {
+      filename,
+      plugins: [
+        [
+          '@babel/plugin-transform-react-jsx',
+          {
+            pragma: tsconfig.compilerOptions.jsxFactory,
+            pragmaFrag: tsconfig.compilerOptions.jsxFragmentFactory,
+            throwIfNamespace: false,
+          },
+        ],
+        [
+          '@babel/plugin-transform-typescript',
+          { isTSX: true, allExtensions: true },
+        ],
+      ],
+    });
 
-          const children = node.children
-            .filter((child) => !(t.isJSXText(child) && !child.value.trim()))
-            .map((child) =>
-              t.isJSXElement(child)
-                ? jsxToCreateElement(child)
-                : t.isJSXText(child)
-                  ? t.stringLiteral(child.value.trim())
-                  : t.isJSXExpressionContainer(child)
-                    ? child.expression
-                    : null,
-            );
+    const transpiled = result.code ?? '';
+    cache.set(cacheKey, transpiled);
 
-          return t.callExpression(createElement, [
-            type,
-            props,
-            ...children.filter(
-              (c): c is t.Expression => !!c && t.isExpression(c),
-            ),
-          ]);
-        }
-
-        return node;
-      };
-
-      path.replaceWith(jsxToCreateElement(path.node));
-    },
-  });
-
-  return generate(ast, {}, code).code;
+    return transpiled;
+  } catch (error) {
+    throw new Error(`JSX transpilation failed: ${(error as Error).message}`);
+  }
 };

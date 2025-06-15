@@ -65,12 +65,7 @@ describe('Transpiler', () => {
     const js = transpile(tsx);
 
     expect(js).toEqualIgnoringWhitespace(`
-      type CounterProps = {
-        count: number;
-        setCount: (n: number) => void;
-      };
-
-      function Counter({count, setCount}: CounterProps) {
+      function Counter({count, setCount}) {
         return Dust.createElement(
           "div", 
           null, 
@@ -129,7 +124,7 @@ describe('Transpiler', () => {
     const js = transpile(jsx);
     expect(js).toEqualIgnoringWhitespace(`
       function App(props) {
-        return Dust.createElement("div", { ...props });
+        return Dust.createElement("div", props);
       }
     `);
   });
@@ -167,6 +162,6 @@ describe('Transpiler', () => {
   test('throws on unknown JSX element type', () => {
     expect(() => {
       transpile('function App() { return <[object Object] />; }');
-    }).toThrow('Un');
+    }).toThrow('JSX transpilation failed');
   });
 });
