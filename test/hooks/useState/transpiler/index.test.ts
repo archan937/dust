@@ -1,7 +1,9 @@
-import { describe, expect, test } from 'bun:test';
-import { transpile } from 'src/transpiler';
+import { afterEach, describe, expect, spyOn, test } from 'bun:test';
+import { clearCache, transpile } from 'src/transpiler';
 
 describe('Transpiler', () => {
+  afterEach(clearCache);
+
   test('transpiles JSX to JS', () => {
     const jsx = `
       function Counter({ count, setCount }) {
@@ -157,6 +159,32 @@ describe('Transpiler', () => {
     `;
     const js = transpile(jsx);
     expect(js).toContain('foo: "bar"');
+  });
+
+  test('caches transpiled code', () => {
+    const key = 'virtual.jsx:-oz1mwi';
+
+    const hasSpy = spyOn(Map.prototype, 'has').mockImplementation(
+      (k: string) => k === key,
+    );
+
+    const getSpy = spyOn(Map.prototype, 'get').mockImplementation(
+      (k: string) => {
+        if (k === key) return 'CACHED';
+      },
+    );
+
+    const jsx = `
+      function App() {
+        return <><div foo="bar" /></>;
+      }
+    `;
+
+    const js = transpile(jsx);
+    expect(js).toEqual('CACHED');
+
+    hasSpy.mockRestore();
+    getSpy.mockRestore();
   });
 
   test('throws on unknown JSX element type', () => {

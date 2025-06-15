@@ -26,6 +26,10 @@ const hash = (str: string): string => {
   return hash.toString(36);
 };
 
+export const clearCache = (): void => {
+  cache.clear();
+};
+
 export const transpile = (code: string, filename = 'virtual.jsx'): string => {
   const cacheKey = `${filename}:${hash(code)}`;
 
