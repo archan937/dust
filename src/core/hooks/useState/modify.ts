@@ -1,5 +1,5 @@
 import type { Getter } from 'src/types';
-import { getType } from 'src/utils';
+import { getType } from 'src/utils/reactive';
 
 export const replace = (current: unknown, newValue: unknown): unknown => {
   const type = getType(current);

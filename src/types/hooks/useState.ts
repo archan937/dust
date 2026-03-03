@@ -1,5 +1,5 @@
 export type Getter<T> = (() => T) & {
-  __register__: (fn: () => void) => void;
+  __register__: (fn: () => void) => () => void;
   __setter__: (value: T | ((prev: T) => T)) => void;
 } & {
   [K in keyof T]: T[K] extends (...args: never[]) => unknown

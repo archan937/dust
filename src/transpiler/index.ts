@@ -3,6 +3,8 @@ import babelPluginTransformTypescript from '@babel/plugin-transform-typescript';
 import * as babel from '@babel/standalone';
 
 import tsconfig from '../../tsconfig.json' with { type: 'json' };
+import injectDustImportPlugin from './plugins/inject-dust-import';
+import jsxGetterConsumerPlugin from './plugins/jsx-getter-consumer';
 
 babel.registerPlugin(
   '@babel/plugin-transform-react-jsx',
@@ -17,13 +19,13 @@ babel.registerPlugin(
 const cache = new Map<string, string>();
 
 const hash = (str: string): string => {
-  let hash = 0;
+  let h = 0;
   for (let i = 0; i < str.length; i++) {
     const char = str.charCodeAt(i);
-    hash = (hash << 5) - hash + char;
-    hash = hash & hash;
+    h = (h << 5) - h + char;
+    h = h & h;
   }
-  return hash.toString(36);
+  return h.toString(36);
 };
 
 export const clearCache = (): void => {
@@ -34,13 +36,14 @@ export const transpile = (code: string, filename = 'virtual.jsx'): string => {
   const cacheKey = `${filename}:${hash(code)}`;
 
   if (cache.has(cacheKey)) {
-    return cache.get(cacheKey) ?? '';
+    return cache.get(cacheKey)!;
   }
 
   try {
     const result = babel.transform(code, {
       filename,
       plugins: [
+        injectDustImportPlugin,
         [
           '@babel/plugin-transform-react-jsx',
           {
@@ -51,8 +54,9 @@ export const transpile = (code: string, filename = 'virtual.jsx'): string => {
         ],
         [
           '@babel/plugin-transform-typescript',
-          { isTSX: true, allExtensions: true },
+          { isTSX: true, allExtensions: true, onlyRemoveTypeImports: true },
         ],
+        jsxGetterConsumerPlugin,
       ],
     });
 
