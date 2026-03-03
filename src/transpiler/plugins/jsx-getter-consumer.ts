@@ -47,9 +47,7 @@ const jsxGetterConsumerPlugin = (): PluginObj => ({
         if (argIndex >= 2) {
           path.replaceWith(t.arrowFunctionExpression([], path.node));
         }
-        return;
       }
-
     },
   },
 });

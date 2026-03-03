@@ -1,5 +1,7 @@
 type RegisterFn = (fn: () => void) => () => void;
-export const tracking: { current: ((register: RegisterFn) => void) | null } = { current: null };
+export const tracking: { current: ((register: RegisterFn) => void) | null } = {
+  current: null,
+};
 
 export const getType = (value: unknown): string => {
   if (value === null) return 'null';
@@ -11,5 +13,8 @@ export const getType = (value: unknown): string => {
   return typeof value;
 };
 
-export const isReactiveProperty = (value: unknown, prop: PropertyKey): boolean =>
+export const isReactiveProperty = (
+  value: unknown,
+  prop: PropertyKey,
+): boolean =>
   !Array.isArray(value) && Object.prototype.hasOwnProperty.call(value, prop);

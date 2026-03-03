@@ -2,7 +2,6 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 import esbuild from 'esbuild';
-
 import { CWD } from 'src/utils';
 
 import { jsxTranspiler, reactDust } from './plugins';
@@ -40,5 +39,8 @@ export const build = async (outdir = path.join(CWD, 'dist')): Promise<void> => {
 
   fs.mkdirSync(outdir, { recursive: true });
   fs.writeFileSync(path.join(outdir, outFile), js);
-  fs.writeFileSync(path.join(outdir, 'index.html'), index.replace(src, `./${outFile}`));
+  fs.writeFileSync(
+    path.join(outdir, 'index.html'),
+    index.replace(src, `./${outFile}`),
+  );
 };

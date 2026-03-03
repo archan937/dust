@@ -23,9 +23,11 @@ const mountChild = (parent: Node, child: Child): void => {
 
   if (typeof child === 'function') {
     // Run with tracking to detect reactive state dependencies.
-    const trackedDeps: Array<(fn: () => void) => () => void> = [];
+    const trackedDeps: ((fn: () => void) => () => void)[] = [];
     const prevTracker = tracking.current;
-    tracking.current = (registerFn) => trackedDeps.push(registerFn);
+    tracking.current = (registerFn): void => {
+      trackedDeps.push(registerFn);
+    };
     const value = child();
     tracking.current = prevTracker;
 
@@ -43,7 +45,12 @@ const mountChild = (parent: Node, child: Child): void => {
 
     // child has reactive deps (e.g. `() => count()`, `() => show() && <p/>`).
     if (trackedDeps.length > 0) {
-      if (value instanceof Node || value === null || value === undefined || typeof value === 'boolean') {
+      if (
+        value instanceof Node ||
+        value === null ||
+        value === undefined ||
+        typeof value === 'boolean'
+      ) {
         // Reactive DOM: use an anchor comment for in-place replacement.
         const anchor = document.createComment('');
         parent.appendChild(anchor);
@@ -52,9 +59,11 @@ const mountChild = (parent: Node, child: Child): void => {
         const update = (): void => {
           const next = child() as Child;
           const nextNode = next instanceof Node ? next : null;
-          if (current && current.parentNode) current.parentNode.removeChild(current);
+          if (current && current.parentNode)
+            current.parentNode.removeChild(current);
           current = nextNode;
-          if (current && anchor.parentNode) anchor.parentNode.insertBefore(current, anchor);
+          if (current && anchor.parentNode)
+            anchor.parentNode.insertBefore(current, anchor);
         };
         trackedDeps.forEach((reg) => reg(update));
         return;
@@ -77,7 +86,10 @@ const mountChild = (parent: Node, child: Child): void => {
   parent.appendChild(document.createTextNode(String(child)));
 };
 
-export const Fragment = (_props: Props, ...children: Child[]): DocumentFragment => {
+export const Fragment = (
+  _props: Props,
+  ...children: Child[]
+): DocumentFragment => {
   const fragment = document.createDocumentFragment();
   children.forEach((child) => mountChild(fragment, child));
   return fragment;

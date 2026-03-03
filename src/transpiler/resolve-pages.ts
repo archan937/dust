@@ -1,13 +1,14 @@
-import { globSync } from 'glob';
 import path from 'node:path';
+
+import { globSync } from 'glob';
 
 const DIRECTORY_ROUTER_RE =
   /<DirectoryRouter[^>]*\bpages=["']([^"']+)["'][^/>]*(?:\/>|>)/;
 
-export type PageEntry = {
+export interface PageEntry {
   route: string;
   importPath: string;
-};
+}
 
 export const resolvePages = (baseDir: string, source: string): PageEntry[] => {
   const match = source.match(DIRECTORY_ROUTER_RE);
@@ -31,7 +32,10 @@ export const resolvePages = (baseDir: string, source: string): PageEntry[] => {
   });
 };
 
-export const buildPagesPreamble = (pages: PageEntry[], rootDir?: string): string => {
+export const buildPagesPreamble = (
+  pages: PageEntry[],
+  rootDir?: string,
+): string => {
   if (pages.length === 0) return '';
 
   const imports = pages

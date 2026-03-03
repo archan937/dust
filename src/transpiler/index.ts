@@ -36,7 +36,7 @@ export const transpile = (code: string, filename = 'virtual.jsx'): string => {
   const cacheKey = `${filename}:${hash(code)}`;
 
   if (cache.has(cacheKey)) {
-    return cache.get(cacheKey)!;
+    return cache.get(cacheKey) ?? '';
   }
 
   try {

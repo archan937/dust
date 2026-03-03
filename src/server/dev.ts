@@ -1,5 +1,5 @@
-import path from 'node:path';
 import { watch } from 'node:fs';
+import path from 'node:path';
 
 import { transpile } from 'src/transpiler';
 import { buildPagesPreamble, resolvePages } from 'src/transpiler/resolve-pages';
@@ -64,7 +64,10 @@ const HMR_SCRIPT = `<script>new EventSource('/_dust/hmr').onmessage = () => loca
 
 const injectDevScripts = (html: string): string =>
   html
-    .replace('<head>', `<head>\n  <script type="importmap">${IMPORT_MAP}</script>`)
+    .replace(
+      '<head>',
+      `<head>\n  <script type="importmap">${IMPORT_MAP}</script>`,
+    )
     .replace('</body>', `  ${HMR_SCRIPT}\n</body>`);
 
 const serveHtml = async (filePath: string): Promise<Response> =>
@@ -107,13 +110,16 @@ export const dev = (): number =>
       }
 
       if (pathname === '/_dust/hmr') {
-        const { readable, writable } = new TransformStream<Uint8Array, Uint8Array>();
+        const { readable, writable } = new TransformStream<
+          Uint8Array,
+          Uint8Array
+        >();
         const writer = writable.getWriter();
         hmrClients.add(writer);
         writer.write(encoder.encode(': connected\n\n'));
         req.signal.addEventListener('abort', () => {
           hmrClients.delete(writer);
-          writer.close().catch(() => {});
+          void writer.close();
         });
         return new Response(readable, {
           headers: {

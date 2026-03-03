@@ -2,10 +2,9 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 import type { Plugin, PluginBuild } from 'esbuild';
-
-import { ROOT } from 'src/utils';
 import { transpile } from 'src/transpiler';
 import { buildPagesPreamble, resolvePages } from 'src/transpiler/resolve-pages';
+import { ROOT } from 'src/utils';
 
 // ── JSX transpiler ─────────────────────────────────────────────────────────────
 

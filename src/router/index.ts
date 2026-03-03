@@ -25,7 +25,9 @@ const intercept = (): void => {
     renderRoute(args[2] as string | URL);
   };
 
-  history.replaceState = (...args: Parameters<typeof history.replaceState>): void => {
+  history.replaceState = (
+    ...args: Parameters<typeof history.replaceState>
+  ): void => {
     replaceState.apply(history, args);
     renderRoute(args[2] as string | URL);
   };
@@ -51,7 +53,10 @@ export const registerRoutes = (newRoutes: Routes): void => {
   Object.assign(
     routes,
     Object.fromEntries(
-      Object.entries(newRoutes).map(([path, route]) => [resolvePath(path), route]),
+      Object.entries(newRoutes).map(([path, route]) => [
+        resolvePath(path),
+        route,
+      ]),
     ),
   );
   currentPath = undefined;
@@ -87,7 +92,10 @@ const renderRoute = (url: string | Location | URL): void => {
 
 const resolvePath = (arg: string | Location | URL): string => {
   const url = String(arg);
-  const path = (url.startsWith('/') ? url : new URL(url).pathname).replace(/\/+$/, '');
+  const path = (url.startsWith('/') ? url : new URL(url).pathname).replace(
+    /\/+$/,
+    '',
+  );
   return path || '/';
 };
 

@@ -6,8 +6,12 @@ const injectDustImportPlugin = (): PluginObj => ({
       enter(path): void {
         let hasJSX = false;
         path.traverse({
-          JSXElement() { hasJSX = true; },
-          JSXFragment() { hasJSX = true; },
+          JSXElement() {
+            hasJSX = true;
+          },
+          JSXFragment() {
+            hasJSX = true;
+          },
         });
         if (!hasJSX) return;
 

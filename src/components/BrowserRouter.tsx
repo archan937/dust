@@ -31,9 +31,10 @@ const collectRoutes = (nodes: Node[], prefix = '/'): Routes =>
     const def = routeData.get(node as object);
     if (!def) return acc;
 
-    const path = `${prefix}${def.index ? '' : `/${def.path ?? ''}`}`
-      .replace(/\/+/g, '/')
-      .replace(/\/$/, '') || '/';
+    const path =
+      `${prefix}${def.index ? '' : `/${def.path ?? ''}`}`
+        .replace(/\/+/g, '/')
+        .replace(/\/$/, '') || '/';
 
     if (def.component) return { ...acc, [path]: def.component };
 
@@ -41,7 +42,7 @@ const collectRoutes = (nodes: Node[], prefix = '/'): Routes =>
       const target = def.redirect;
       return {
         ...acc,
-        [path]: () => {
+        [path]: (): DocumentFragment => {
           window.location.href = target;
           return document.createDocumentFragment();
         },
@@ -53,14 +54,19 @@ const collectRoutes = (nodes: Node[], prefix = '/'): Routes =>
 
 // ── BrowserRouter ──────────────────────────────────────────────────────────────
 
-function BrowserRouter(_props: Record<string, unknown>, ...routeNodes: Node[]): Node {
+const BrowserRouter = (
+  _props: Record<string, unknown>,
+  ...routeNodes: Node[]
+): Node => {
   const container = document.createElement('div');
 
   // Register handler BEFORE registerRoutes so the initial route renders immediately.
-  matchRoute((_path, component) => container.replaceChildren(component() as Node));
+  matchRoute((_path, component) =>
+    container.replaceChildren(component() as Node),
+  );
   registerRoutes(collectRoutes(routeNodes));
 
   return container;
-}
+};
 
 export default BrowserRouter;

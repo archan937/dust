@@ -30,7 +30,9 @@ const useState = <T>(initialValue: T): State<T> => {
     if (typeof value !== 'object' || value === null) return value;
     if (Array.isArray(value)) return (value as unknown[]).map(read);
     if (getType(value) !== 'object') return value;
-    const { constructor } = value as { constructor?: new (...args: never[]) => unknown };
+    const { constructor } = value as {
+      constructor?: new (...args: never[]) => unknown;
+    };
     if (constructor && constructor !== Object) return value;
     const object = Object.assign({}, value) as Record<string, unknown>;
     Object.entries(object).forEach(([key, val]) => {
@@ -41,60 +43,65 @@ const useState = <T>(initialValue: T): State<T> => {
     return object;
   };
 
-  const getter = new Proxy((): T => {
-    if (tracking.current) tracking.current(register);
-    return read(current) as T;
-  }, {
-    get(target, prop, receiver): unknown {
-      const currentType = getType(current);
+  const getter = new Proxy(
+    (): T => {
+      if (tracking.current) tracking.current(register);
+      return read(current) as T;
+    },
+    {
+      get(target, prop, receiver): unknown {
+        const currentType = getType(current);
 
-      switch (prop) {
-        case '__register__':
-          return register;
-        case '__setter__':
-          return setter;
-        case 'toString':
-        case 'valueOf':
-          return () => read(current);
-      }
-
-      if (currentType === 'array' || currentType === 'object') {
-        const value = (current as Record<PropertyKey, unknown>)[prop];
-
-        if (typeof value === 'function') {
-          return (value as Getter<unknown>).__setter__ ? value : value.bind(current);
+        switch (prop) {
+          case '__register__':
+            return register;
+          case '__setter__':
+            return setter;
+          case 'toString':
+          case 'valueOf':
+            return () => read(current);
         }
 
-        if (isReactiveProperty(current, prop)) {
-          const [nestedGetter] = useState(value);
-          (current as Record<PropertyKey, unknown>)[prop] = nestedGetter;
-          return nestedGetter;
+        if (currentType === 'array' || currentType === 'object') {
+          const value = (current as Record<PropertyKey, unknown>)[prop];
+
+          if (typeof value === 'function') {
+            return (value as Getter<unknown>).__setter__
+              ? value
+              : value.bind(current);
+          }
+
+          if (isReactiveProperty(current, prop)) {
+            const [nestedGetter] = useState(value);
+            (current as Record<PropertyKey, unknown>)[prop] = nestedGetter;
+            return nestedGetter;
+          }
+
+          return value;
         }
 
-        return value;
-      }
-
-      return Reflect.get(target, prop, receiver);
+        return Reflect.get(target, prop, receiver);
+      },
+      ownKeys(): ReturnType<typeof Object.keys> {
+        return Object.keys(current as Record<string, unknown>);
+      },
+      getOwnPropertyDescriptor(target, prop): PropertyDescriptor | undefined {
+        const type = getType(current);
+        if (
+          (type === 'array' || type === 'object') &&
+          current !== null &&
+          typeof current === 'object' &&
+          prop in current
+        ) {
+          return {
+            enumerable: true,
+            configurable: true,
+          };
+        }
+        return undefined;
+      },
     },
-    ownKeys(): ReturnType<typeof Object.keys> {
-      return Object.keys(current as Record<string, unknown>);
-    },
-    getOwnPropertyDescriptor(target, prop): PropertyDescriptor | undefined {
-      const type = getType(current);
-      if (
-        (type === 'array' || type === 'object') &&
-        current !== null &&
-        typeof current === 'object' &&
-        prop in current
-      ) {
-        return {
-          enumerable: true,
-          configurable: true,
-        };
-      }
-      return undefined;
-    },
-  }) as Getter<T>;
+  ) as Getter<T>;
 
   return [getter, setter];
 };
