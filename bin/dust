@@ -1,16 +1,53 @@
 #!/usr/bin/env bun
 
-import { spawn } from 'bun';
+import chalk from 'chalk';
 
-const index = Bun.argv.indexOf(Bun.argv[1]);
-const [cmd] = Bun.argv.slice(index + 1) ?? ['dev'];
-const flags = ['dev'].includes(cmd) ? ['--watch'] : [];
+import * as bundler from '../src/bundler';
+import * as server from '../src/server';
+import { NAME, VERSION } from '../src/utils';
 
-const proc = spawn({
-  cmd: ['bun', ...flags, `${import.meta.dir}/run`, cmd],
-  stdout: 'inherit',
-  stderr: 'inherit',
-  stdin: 'inherit',
-});
+const cmd = Bun.argv[Bun.argv.indexOf(Bun.argv[1]) + 1] ?? 'dev';
 
-await proc.exited;
+const banner = (label: string): void => {
+  console.log(`
+  ${chalk.cyan(NAME)} ${chalk.green(`v${VERSION}`)} ${chalk.gray(`· ${label}`)}
+  `);
+};
+
+const dev = (): void => {
+  const port = server.dev();
+  banner('DEV');
+  console.log(`  ${chalk.gray('Local')}   ${chalk.white(`http://localhost:${port}/`)}`);
+  console.log(`  ${chalk.gray('Press')}   ${chalk.white('CTRL + C to stop')}\n`);
+};
+
+const build = async (): Promise<void> => {
+  console.log(`  ${chalk.gray('Building...')}`);
+  await bundler.build();
+  banner('BUILD');
+  console.log(`  ${chalk.gray('Output')}  ${chalk.white('./dist')}`);
+  console.log(`  ${chalk.gray('To preview, run')}  ${chalk.white('dust preview')}\n`);
+};
+
+const preview = (): void => {
+  const port = server.preview();
+  banner('PREVIEW');
+  console.log(`  ${chalk.gray('Local')}   ${chalk.white(`http://localhost:${port}/`)}`);
+  console.log(`  ${chalk.gray('Press')}   ${chalk.white('CTRL + C to stop')}\n`);
+};
+
+switch (cmd) {
+  case 'dev':
+    dev();
+    break;
+  case 'build':
+    await build();
+    break;
+  case 'preview':
+    preview();
+    break;
+  default:
+    console.log(`  ${chalk.red('Unknown command:')} ${chalk.white(cmd)}`);
+    console.log(`  ${chalk.gray('Available: dev, build, preview')}\n`);
+    process.exit(1);
+}

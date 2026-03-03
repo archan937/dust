@@ -1,4 +1,4 @@
-import { getType, isReactiveProperty } from 'src/utils/reactive';
+import { getType, isReactiveProperty, tracking } from 'src/utils/reactive';
 import type { Getter, SetterFunction, State } from 'types';
 
 import { replace } from './modify';
@@ -41,7 +41,10 @@ const useState = <T>(initialValue: T): State<T> => {
     return object;
   };
 
-  const getter = new Proxy((): T => read(current) as T, {
+  const getter = new Proxy((): T => {
+    if (tracking.current) tracking.current(register);
+    return read(current) as T;
+  }, {
     get(target, prop, receiver): unknown {
       const currentType = getType(current);
 

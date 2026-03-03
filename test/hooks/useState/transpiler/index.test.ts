@@ -170,7 +170,7 @@ describe('Transpiler', () => {
   });
 
   describe('JSX getter consumption', () => {
-    test('wraps state getter in arrow function when used as JSX attribute', () => {
+    test('does not wrap state getter used as JSX attribute', () => {
       const jsx = `
         function App() {
           const [count, setCount] = useState(0);
@@ -183,13 +183,13 @@ describe('Transpiler', () => {
         function App() {
           const [count, setCount] = useState(0);
           return Dust.createElement("div", {
-            onClick: () => count
+            onClick: count
           });
         }
       `);
     });
 
-    test('wraps multiple state getters in arrow functions', () => {
+    test('does not wrap multiple state getters used as JSX attributes', () => {
       const jsx = `
         function App() {
           const [count, setCount] = useState(0);
@@ -204,8 +204,8 @@ describe('Transpiler', () => {
           const [count, setCount] = useState(0);
           const [name, setName] = useState('');
           return Dust.createElement("div", {
-            onClick: () => count,
-            onMouseOver: () => name
+            onClick: count,
+            onMouseOver: name
           });
         }
       `);
@@ -231,10 +231,10 @@ describe('Transpiler', () => {
           const [count, setCount] = useState(0);
           return Dust.createElement("div", null,
             Dust.createElement("span", {
-              onClick: () => count
+              onClick: count
             },
               Dust.createElement("button", {
-                onMouseDown: () => count
+                onMouseDown: count
               })
             )
           );
@@ -286,12 +286,12 @@ describe('Transpiler', () => {
           const [user, setUser] = useState({ name: 'John' });
           return Dust.createElement("div", null,
             Dust.createElement("header", {
-              onClick: () => user
+              onClick: user
             },
               Dust.createElement("nav", null,
                 Dust.createElement("ul", null,
                   Dust.createElement("li", {
-                    onHover: () => user
+                    onHover: user
                   }, "Item")
                 )
               )
@@ -339,6 +339,26 @@ describe('Transpiler', () => {
           });
         }
       `);
+    });
+
+    test('does not wrap PascalCase component references in props or children', () => {
+      const jsx = `
+        function App() {
+          return (
+            <BrowserRouter>
+              <Route path="/" component={Home} />
+              <Route path="/about" component={AboutMe} />
+              {SomeWidget}
+            </BrowserRouter>
+          );
+        }
+      `;
+      const js = transpile(jsx);
+      expect(js).toContain('component: Home');
+      expect(js).toContain('component: AboutMe');
+      expect(js).not.toContain('() => Home');
+      expect(js).not.toContain('() => AboutMe');
+      expect(js).not.toContain('() => SomeWidget');
     });
   });
 

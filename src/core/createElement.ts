@@ -1,4 +1,5 @@
 import type { Getter } from 'src/types';
+import { tracking } from 'src/utils/reactive';
 
 type Child =
   | (() => unknown)
@@ -21,14 +22,50 @@ const mountChild = (parent: Node, child: Child): void => {
   }
 
   if (typeof child === 'function') {
+    // Run with tracking to detect reactive state dependencies.
+    const trackedDeps: Array<(fn: () => void) => () => void> = [];
+    const prevTracker = tracking.current;
+    tracking.current = (registerFn) => trackedDeps.push(registerFn);
     const value = child();
+    tracking.current = prevTracker;
+
     const getter = value as Getter<unknown>;
 
+    // child returned a state getter directly (e.g. `() => count`) → reactive text.
     if (typeof getter === 'function' && getter.__register__) {
       const text = document.createTextNode(String(getter()));
       getter.__register__(() => {
         text.textContent = String(getter());
       });
+      parent.appendChild(text);
+      return;
+    }
+
+    // child has reactive deps (e.g. `() => count()`, `() => show() && <p/>`).
+    if (trackedDeps.length > 0) {
+      if (value instanceof Node || value === null || value === undefined || typeof value === 'boolean') {
+        // Reactive DOM: use an anchor comment for in-place replacement.
+        const anchor = document.createComment('');
+        parent.appendChild(anchor);
+        let current: Node | null = value instanceof Node ? value : null;
+        if (current) parent.insertBefore(current, anchor);
+        const update = (): void => {
+          const next = child() as Child;
+          const nextNode = next instanceof Node ? next : null;
+          if (current && current.parentNode) current.parentNode.removeChild(current);
+          current = nextNode;
+          if (current && anchor.parentNode) anchor.parentNode.insertBefore(current, anchor);
+        };
+        trackedDeps.forEach((reg) => reg(update));
+        return;
+      }
+
+      // Reactive primitive (number, string).
+      const text = document.createTextNode(String(value));
+      const update = (): void => {
+        text.textContent = String(child());
+      };
+      trackedDeps.forEach((reg) => reg(update));
       parent.appendChild(text);
       return;
     }

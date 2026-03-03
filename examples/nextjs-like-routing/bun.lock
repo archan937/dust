@@ -1,0 +1,14 @@
+{
+  "lockfileVersion": 1,
+  "workspaces": {
+    "": {
+      "name": "dust-example-nextjs-routing",
+      "dependencies": {
+        "dust": "link:dust",
+      },
+    },
+  },
+  "packages": {
+    "dust": ["dust@link:dust", { "bin": { "dust": "./bin/dust" } }],
+  }
+}

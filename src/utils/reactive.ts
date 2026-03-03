@@ -1,3 +1,6 @@
+type RegisterFn = (fn: () => void) => () => void;
+export const tracking: { current: ((register: RegisterFn) => void) | null } = { current: null };
+
 export const getType = (value: unknown): string => {
   if (value === null) return 'null';
   if (Array.isArray(value)) return 'array';

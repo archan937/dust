@@ -2,6 +2,7 @@ import path from 'node:path';
 import { watch } from 'node:fs';
 
 import { transpile } from 'src/transpiler';
+import { buildPagesPreamble, resolvePages } from 'src/transpiler/resolve-pages';
 import { CWD, PORT, ROOT } from 'src/utils';
 
 const IMPORT_MAP = JSON.stringify({ imports: { dust: '/@dust' } });
@@ -73,7 +74,10 @@ const serveHtml = async (filePath: string): Promise<Response> =>
 
 const serveScript = async (filePath: string): Promise<Response> => {
   try {
-    const js = transpile(await Bun.file(filePath).text(), filePath);
+    const source = await Bun.file(filePath).text();
+    const pages = resolvePages(path.dirname(filePath), source);
+    const preamble = buildPagesPreamble(pages, CWD);
+    const js = transpile(preamble + source, filePath);
     return new Response(js, {
       headers: { 'Content-Type': 'application/javascript' },
     });
