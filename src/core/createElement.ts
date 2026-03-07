@@ -1,7 +1,7 @@
 import type { Getter } from 'src/types';
 import { tracking } from 'src/utils/reactive';
 
-type Child =
+export type Child =
   | (() => unknown)
   | DocumentFragment
   | Node
@@ -126,12 +126,15 @@ export const Fragment = (
 };
 
 export const createElement = (
-  type: string | ((...args: unknown[]) => Node),
+  type: string | ((...args: never[]) => Node),
   props: Props,
   ...children: Child[]
 ): Node => {
   if (typeof type === 'function') {
-    return type(props ?? {}, ...children);
+    return (type as (props: Props, ...children: Child[]) => Node)(
+      props ?? {},
+      ...children,
+    );
   }
 
   const el = document.createElement(type);

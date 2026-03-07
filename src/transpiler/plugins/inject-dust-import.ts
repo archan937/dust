@@ -17,8 +17,7 @@ const injectDustImportPlugin = (): PluginObj => ({
 
         // Check for any existing import from 'dust', regardless of local name.
         const alreadyImported = path.node.body.some(
-          (node) =>
-            t.isImportDeclaration(node) && node.source.value === 'dust',
+          (node) => t.isImportDeclaration(node) && node.source.value === 'dust',
         );
         if (alreadyImported) return;
 

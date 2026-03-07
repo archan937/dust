@@ -62,10 +62,10 @@ The Dust transpiler rewrites JSX children and props at compile time:
 
 ```jsx
 // You write:
-<p>{count}</p>
+<p>{count}</p>;
 
 // Transpiler produces:
-Dust.createElement('p', null, () => count)
+Dust.createElement('p', null, () => count);
 ```
 
 Reactive expressions become arrow functions before the code ever runs in the browser. No runtime scanning. No dependency tracking loops. The structure of reactivity is determined **at compile time**.
@@ -96,21 +96,21 @@ That is the entire update mechanism. A single property assignment. No diffing. N
 
 React's hook API is large because most of it exists to compensate for the re-render model. Dust eliminates the problem, not just the symptom.
 
-| Hook | React needs it because… | Dust |
-|---|---|---|
-| `useRef` | Local vars are discarded on re-render; refs survive | Component functions run once. Local vars are closures. Refs are unnecessary. |
-| `useCallback` | Functions are recreated on every render, breaking memo | Functions are created once at mount. There is no render to recreate them. |
-| `useMemo` | Expensive computations re-run on every render | Computations run once. State-derived values use reactive getters. |
-| `useReducer` | Convenience over `useState` for complex state | `useState` handles it. Optional pattern, not structural need. |
-| `useLayoutEffect` | Must fire synchronously after VDOM flush | Dust's DOM updates are direct synchronous mutations. There is no flush. |
-| `useTransition` / `useDeferredValue` | Concurrent scheduler for deferring expensive renders | There is no scheduler. Updates are immediate and already minimal. |
-| `useImperativeHandle` | Expose imperative handles via ref | Refs don't exist as a concept. DOM nodes are just nodes. |
+| Hook                                 | React needs it because…                                | Dust                                                                         |
+| ------------------------------------ | ------------------------------------------------------ | ---------------------------------------------------------------------------- |
+| `useRef`                             | Local vars are discarded on re-render; refs survive    | Component functions run once. Local vars are closures. Refs are unnecessary. |
+| `useCallback`                        | Functions are recreated on every render, breaking memo | Functions are created once at mount. There is no render to recreate them.    |
+| `useMemo`                            | Expensive computations re-run on every render          | Computations run once. State-derived values use reactive getters.            |
+| `useReducer`                         | Convenience over `useState` for complex state          | `useState` handles it. Optional pattern, not structural need.                |
+| `useLayoutEffect`                    | Must fire synchronously after VDOM flush               | Dust's DOM updates are direct synchronous mutations. There is no flush.      |
+| `useTransition` / `useDeferredValue` | Concurrent scheduler for deferring expensive renders   | There is no scheduler. Updates are immediate and already minimal.            |
+| `useImperativeHandle`                | Expose imperative handles via ref                      | Refs don't exist as a concept. DOM nodes are just nodes.                     |
 
 Dust needs exactly **three hooks**:
 
 - **`useState`** — the reactive primitive for all state.
 - **`useEffect`** — side effects that react to state changes, with cleanup.
-- **`useContext`** — dependency injection through the component tree.
+- **`useContext`** — dependency injection through the component tree, with full Provider nesting and automatic stack cleanup.
 
 `useParams` is not a separate primitive — it is a `useState<Record<string,string>>({})` instance managed by the router. The hook model is that clean.
 
@@ -155,6 +155,63 @@ No memory leaks. No stale subscriptions. No effect cleanup boilerplate spread ac
 
 ---
 
+## Two Routing Flavours
+
+Dust ships with two routers that cover the two patterns developers already know from the React ecosystem — one from Next.js, one from React Router DOM.
+
+### DirectoryRouter — the Next.js flavour
+
+Drop a `pages/` directory next to your app entry point. Dust's dev server scans it, maps file paths to URL patterns, and injects the route registrations automatically. You never write a route table.
+
+```
+src/
+  pages/
+    index.jsx        → /
+    about.jsx        → /about
+    posts/
+      [id].jsx       → /posts/:id
+```
+
+```jsx
+// App.jsx — no route config needed
+import { DirectoryRouter } from 'dust';
+
+export default function App() {
+  return <DirectoryRouter />;
+}
+```
+
+This is the same file-system convention Next.js popularised. Routes are discovered from the directory tree at build time. Adding a page means adding a file, not editing a route table.
+
+### BrowserRouter + Route — the React Router DOM flavour
+
+Declare routes in JSX, co-located with the rest of your component tree. Familiar to anyone who has used `<Route>` components.
+
+```jsx
+import { BrowserRouter, Route } from 'dust';
+import Home from './pages/Home';
+import About from './pages/About';
+import Post from './pages/Post';
+
+export default function App() {
+  return (
+    <BrowserRouter>
+      <Route index component={Home} />
+      <Route path="about" component={About} />
+      <Route path="posts/:id" component={Post} />
+    </BrowserRouter>
+  );
+}
+```
+
+Supports nested routes, index routes, and redirects. Route params are reactive via `useParams` — a plain `useState` getter updated on every navigation. Components reading params re-render surgically, just like any other reactive binding.
+
+### What both share
+
+Neither router triggers component re-renders on navigation. When the URL changes, the router calls `cleanupNode` on the outgoing component's subtree (releasing every reactive subscription), then mounts the incoming component fresh. There is no VDOM diff across route transitions — the old tree is discarded and the new one is built once from scratch.
+
+---
+
 ## Summary
 
 Dust is not a stripped-down React. It is a different model built on a better premise.
@@ -169,5 +226,6 @@ The result:
 - **No scheduler** — updates are immediate, synchronous, and already minimal.
 - **Proportional updates** — cost is determined by what changed, not by tree depth.
 - **Three hooks** — `useState`, `useEffect`, `useContext`. That is the complete model.
+- **Two routing flavours** — file-system routing like Next.js, or declarative `<Route>` trees like React Router DOM. Pick whichever fits the project.
 
 State changes in Dust do exactly as much work as the change requires. Nothing more.

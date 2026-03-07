@@ -4,14 +4,14 @@ import { useEffect, useState } from 'dust';
 describe('Hooks', () => {
   describe('useEffect', () => {
     test('calls callback immediately', () => {
-      const fn = mock(() => {});
+      const fn = mock(() => undefined);
       const [count] = useState(0);
       useEffect(fn, [count]);
       expect(fn).toHaveBeenCalledTimes(1);
     });
 
     test('calls callback when dependency changes', () => {
-      const fn = mock(() => {});
+      const fn = mock(() => undefined);
       const [count, setCount] = useState(0);
       useEffect(fn, [count]);
       expect(fn).toHaveBeenCalledTimes(1);
@@ -20,7 +20,7 @@ describe('Hooks', () => {
     });
 
     test('calls callback for each dependency change', () => {
-      const fn = mock(() => {});
+      const fn = mock(() => undefined);
       const [a, setA] = useState(0);
       const [b, setB] = useState(0);
       useEffect(fn, [a, b]);
@@ -32,7 +32,7 @@ describe('Hooks', () => {
     });
 
     test('unsubscribes on returned cleanup call', () => {
-      const fn = mock(() => {});
+      const fn = mock(() => undefined);
       const [count, setCount] = useState(0);
       const cleanup = useEffect(fn, [count]);
       expect(fn).toHaveBeenCalledTimes(1);
@@ -42,13 +42,13 @@ describe('Hooks', () => {
     });
 
     test('ignores non-getter deps', () => {
-      const fn = mock(() => {});
+      const fn = mock(() => undefined);
       useEffect(fn, [null, undefined, 42, 'string']);
       expect(fn).toHaveBeenCalledTimes(1);
     });
 
     test('handles empty deps array', () => {
-      const fn = mock(() => {});
+      const fn = mock(() => undefined);
       useEffect(fn, []);
       expect(fn).toHaveBeenCalledTimes(1);
     });

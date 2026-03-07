@@ -10,8 +10,12 @@ const intercept = (): void => {
   window.addEventListener('popstate', () => renderRoute(window.location));
 
   document.addEventListener('click', (event: MouseEvent) => {
-    const target = (event.target as Element).closest('a');
-    if (target?.tagName === 'A') {
+    let el: Element | null = event.target as Element;
+    while (el && el.tagName !== 'A') {
+      el = el.parentElement;
+    }
+    if (el) {
+      const target = el as HTMLAnchorElement;
       if (target.origin !== window.location.origin || target.hash) return;
       event.preventDefault();
       history.pushState({}, '', target.href);
@@ -35,8 +39,10 @@ const intercept = (): void => {
 
 // ── Route registry ─────────────────────────────────────────────────────────────
 
+const noPage = (): DocumentFragment => document.createDocumentFragment();
+
 let currentPath: string | undefined;
-let currentPage: Component = () => document.createDocumentFragment();
+let currentPage: Component = noPage;
 const routes: Routes = {};
 const handlers: RouteHandler[] = [];
 
@@ -71,7 +77,7 @@ const renderRoute = (url: string | Location | URL): void => {
   currentPath = path;
 
   let params: Record<string, string> = {};
-  let page: Component = () => document.createDocumentFragment();
+  let page: Component = noPage;
 
   for (const [pattern, component] of Object.entries(routes)) {
     const regexp = new RegExp(

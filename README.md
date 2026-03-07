@@ -7,7 +7,7 @@ A minimalistic reactive JavaScript library for building dynamic, state-driven co
 - Reactive `useState` with Proxy-based nested reactivity
 - `useEffect` for side-effect subscriptions
 - JSX support via a custom Babel transpiler (`Dust.createElement`)
-- File-system routing (`DirectoryRouter`) and JSX routing (`BrowserRouter`)
+- File-system routing (`DirectoryRouter`) like Next.js and declarative JSX routing (`BrowserRouter`) like React Router DOM
 - Dev server with HMR, production bundler, and preview server — all via the `dust` CLI
 
 ## Requirements
@@ -21,7 +21,7 @@ Create a project that depends on Dust:
 ```json
 {
   "dependencies": {
-    "dust": "link:../path/to/dust"
+    "dust": "^1.0.0"
   }
 }
 ```
@@ -91,7 +91,7 @@ createRoot(document.getElementById('root')).render(
   <BrowserRouter>
     <Route path="/" component={Home} />
     <Route path="/about" component={About} />
-  </BrowserRouter>
+  </BrowserRouter>,
 );
 ```
 

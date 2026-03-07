@@ -341,6 +341,61 @@ describe('Transpiler', () => {
       `);
     });
 
+    test('wraps member expression in JSX children', () => {
+      const jsx = `
+        function App() {
+          const [user, setUser] = useState({ name: 'John' });
+          return <div>{user.name}</div>;
+        }
+      `;
+      const js = transpile(jsx);
+      expect(js).toContain('() => user.name');
+    });
+
+    test('does not wrap computed member expression in JSX children', () => {
+      const jsx = `
+        function App() {
+          const [obj, setObj] = useState({});
+          const key = 'name';
+          return <div>{obj[key]}</div>;
+        }
+      `;
+      const js = transpile(jsx);
+      expect(js).not.toContain('() => obj[key]');
+    });
+
+    test('does not wrap PascalCase object member expression in JSX children', () => {
+      const jsx = `
+        function App() {
+          return <div>{Foo.bar}</div>;
+        }
+      `;
+      const js = transpile(jsx);
+      expect(js).not.toContain('() => Foo.bar');
+    });
+
+    test('wraps logical expression in JSX children', () => {
+      const jsx = `
+        function App() {
+          const [show, setShow] = useState(true);
+          return <div>{show && <p>Text</p>}</div>;
+        }
+      `;
+      const js = transpile(jsx);
+      expect(js).toContain('() => show &&');
+    });
+
+    test('wraps conditional expression in JSX children', () => {
+      const jsx = `
+        function App() {
+          const [show, setShow] = useState(true);
+          return <div>{show ? <p>Yes</p> : null}</div>;
+        }
+      `;
+      const js = transpile(jsx);
+      expect(js).toContain('() => show ?');
+    });
+
     test('does not wrap PascalCase component references in props or children', () => {
       const jsx = `
         function App() {

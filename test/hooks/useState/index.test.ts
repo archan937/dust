@@ -469,6 +469,18 @@ describe('Hooks', () => {
         expect(set().size).toBe(3);
       });
 
+      test('getOwnPropertyDescriptor returns undefined for non-existent property', () => {
+        const [user] = useState({ name: 'John' });
+        const desc = Object.getOwnPropertyDescriptor(user, 'age');
+        expect(desc).toBeUndefined();
+      });
+
+      test('getOwnPropertyDescriptor returns undefined for primitive state', () => {
+        const [count] = useState(0);
+        const desc = Object.getOwnPropertyDescriptor(count, 'foo');
+        expect(desc).toBeUndefined();
+      });
+
       test('handles primitive arrays', () => {
         const [numbers, setNumbers] = useState([1, 2, 3]);
 
