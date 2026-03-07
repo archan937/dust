@@ -1,6 +1,6 @@
 import path from 'node:path';
 
-import { CWD, PORT } from 'src/utils';
+import { CWD, PORT } from 'src/config';
 
 const distDir = path.join(CWD, 'dist');
 

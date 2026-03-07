@@ -3,7 +3,7 @@ import path from 'node:path';
 
 import { clearCache, transpile } from 'src/transpiler';
 import { buildPagesPreamble, resolvePages } from 'src/transpiler/resolve-pages';
-import { CWD, PORT, ROOT } from 'src/utils';
+import { CWD, PORT, ROOT } from 'src/config';
 
 const IMPORT_MAP = JSON.stringify({ imports: { dust: '/@dust' } });
 const JS_EXTENSIONS = ['.jsx', '.tsx', '.ts', '.js'] as const;

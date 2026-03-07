@@ -4,9 +4,9 @@ import chalk from 'chalk';
 
 import * as bundler from '../src/bundler';
 import * as server from '../src/server';
-import { NAME, VERSION } from '../src/utils';
+import { NAME, VERSION } from '../src/config';
 
-const cmd = Bun.argv[Bun.argv.indexOf(Bun.argv[1]) + 1] ?? 'dev';
+const cmd = Bun.argv[2] ?? 'dev';
 
 const banner = (label: string): void => {
   console.log(`

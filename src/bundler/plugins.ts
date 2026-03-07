@@ -4,7 +4,7 @@ import path from 'node:path';
 import type { Plugin, PluginBuild } from 'esbuild';
 import { transpile } from 'src/transpiler';
 import { buildPagesPreamble, resolvePages } from 'src/transpiler/resolve-pages';
-import { ROOT } from 'src/utils';
+import { ROOT } from 'src/config';
 
 // ── JSX transpiler ─────────────────────────────────────────────────────────────
 

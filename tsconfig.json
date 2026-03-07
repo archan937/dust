@@ -27,8 +27,7 @@
       "dust": ["src"],
       "src/*": ["src/*"],
       "test/*": ["test/*"],
-      "types": ["src/types"],
-      "utils": ["src/utils"]
+      "types": ["src/types"]
     }
   },
   "include": ["**/*.ts", "**/*.tsx"],

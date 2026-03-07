@@ -28,7 +28,7 @@ export default [
       'src/server/**',
       'src/bundler/**',
       'src/transpiler/**',
-      'src/utils/index.ts',
+      'src/config.ts',
       'bin/**',
     ],
     languageOptions: {

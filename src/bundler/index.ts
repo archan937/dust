@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 import esbuild from 'esbuild';
-import { CWD } from 'src/utils';
+import { CWD } from 'src/config';
 
 import { jsxTranspiler, reactDust } from './plugins';
 
