@@ -1,5 +1,18 @@
+import { ReactiveList } from 'src/core/reactive-list';
 import { getType, isReactiveProperty, tracking } from 'src/utils/reactive';
 import type { Getter, SetterFunction, State } from 'types';
+
+const MUTATING = new Set([
+  'push',
+  'pop',
+  'unshift',
+  'shift',
+  'splice',
+  'sort',
+  'reverse',
+  'fill',
+  'copyWithin',
+]);
 
 const replace = (current: unknown, newValue: unknown): unknown => {
   const type = getType(current);
@@ -105,6 +118,26 @@ const useState = <T>(initialValue: T): State<T> => {
           case 'toString':
           case 'valueOf':
             return () => read(current);
+        }
+
+        if (
+          currentType === 'array' &&
+          typeof prop === 'string' &&
+          MUTATING.has(prop)
+        ) {
+          const fn = (current as unknown[])[prop as keyof unknown[]] as (
+            ...args: unknown[]
+          ) => unknown;
+          return (...args: unknown[]) => {
+            const result = fn.apply(current, args);
+            consumers.forEach((cb) => cb());
+            return result;
+          };
+        }
+
+        if (currentType === 'array' && prop === 'map') {
+          return (fn: (item: unknown) => Node) =>
+            new ReactiveList(register, () => current as unknown[], fn);
         }
 
         if (currentType === 'array' || currentType === 'object') {

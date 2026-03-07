@@ -52,5 +52,31 @@ describe('Hooks', () => {
       useEffect(fn, []);
       expect(fn).toHaveBeenCalledTimes(1);
     });
+
+    test('calls cleanup returned by callback before re-running', () => {
+      const order: string[] = [];
+      const [count, setCount] = useState(0);
+      useEffect(() => {
+        order.push('effect');
+        return (): void => {
+          order.push('cleanup');
+        };
+      }, [count]);
+      setCount(1);
+      expect(order).toEqual(['effect', 'cleanup', 'effect']);
+    });
+
+    test('calls cleanup returned by callback on unsubscribe', () => {
+      const order: string[] = [];
+      const [count] = useState(0);
+      const stop = useEffect(() => {
+        order.push('effect');
+        return (): void => {
+          order.push('cleanup');
+        };
+      }, [count]);
+      stop();
+      expect(order).toEqual(['effect', 'cleanup']);
+    });
   });
 });

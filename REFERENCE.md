@@ -67,7 +67,7 @@ bin/dust                    — CLI (chalk): dev | build | preview
 type SetterFunction<T> = (current: T) => T;
 type Getter<T> = {
   (): T;
-  __register__(fn: () => void): () => void;  // subscribe, returns unsubscribe
+  __register__(fn: () => void): () => void; // subscribe, returns unsubscribe
   __setter__: (value: T | SetterFunction<T>) => void;
   // Proxy: getter.prop → nested Getter for object/array properties
 };
@@ -82,23 +82,24 @@ type State<T> = [Getter<T>, (value: T | SetterFunction<T>) => void];
 
 ```ts
 const [count, setCount] = useState(0);
-count()           // read value (also registers as consumer when inside tracking)
-setCount(1)       // set directly
-setCount(n => n + 1)  // functional update
-count.__register__(fn) // subscribe manually → returns unsubscribe()
-count.__setter__       // raw setter reference
+count(); // read value (also registers as consumer when inside tracking)
+setCount(1); // set directly
+setCount((n) => n + 1); // functional update
+count.__register__(fn); // subscribe manually → returns unsubscribe()
+count.__setter__; // raw setter reference
 
 // Object state — nested properties become reactive Getters automatically
 const [user, setUser] = useState({ name: 'Alice', age: 30 });
-user.name()       // reactive Getter for the 'name' property
-user()            // plain object snapshot { name: 'Alice', age: 30 }
+user.name(); // reactive Getter for the 'name' property
+user(); // plain object snapshot { name: 'Alice', age: 30 }
 
 // Array state
 const [items, setItems] = useState([1, 2, 3]);
-setItems([4, 5]) // mutates in-place, trims length
+setItems([4, 5]); // mutates in-place, trims length
 ```
 
 **Internals:**
+
 - `tracking.current` is set by `mountChild` during function-child evaluation to auto-collect deps
 - `replace()` mutates arrays/objects in-place instead of swapping references
 - Object property access via Proxy: non-array own properties become nested `useState`
@@ -124,7 +125,7 @@ root.render(<App />);
 ### createElement / Fragment
 
 ```ts
-createElement(type, props, ...children)
+createElement(type, props, ...children);
 // type: string tag or function component
 // props: { onClick, className, htmlFor, disabled(bool), ...attrs }
 // Event: onXxx → addEventListener('xxx', handler)
@@ -133,10 +134,11 @@ createElement(type, props, ...children)
 // boolean true → setAttribute(key, '')
 // boolean false / null / undefined → skipped
 
-Fragment(null, ...children) // → DocumentFragment
+Fragment(null, ...children); // → DocumentFragment
 ```
 
 **mountChild reactive logic:**
+
 1. `child` is a function → run with `tracking.current` set to collect deps
 2. If result is a `Getter` (has `__register__`) → reactive text node, subscribe directly
 3. If `trackedDeps.length > 0` and result is Node/null/bool → anchor comment + in-place replacement
@@ -251,13 +253,13 @@ clearCache(): void  // evict all transpiler cache entries (called on file change
 
 Wraps in `() =>` when argument index >= 2 of `Dust.createElement(...)` (i.e., children or prop values):
 
-| Node type | Wrapped? | Exception |
-|---|---|---|
-| `Identifier` | yes | PascalCase names (component refs) |
-| `MemberExpression` (non-computed) | yes | object is PascalCase identifier |
-| `CallExpression` (0 args) | yes | — |
-| `LogicalExpression` | yes | — |
-| `ConditionalExpression` | yes | — |
+| Node type                         | Wrapped? | Exception                         |
+| --------------------------------- | -------- | --------------------------------- |
+| `Identifier`                      | yes      | PascalCase names (component refs) |
+| `MemberExpression` (non-computed) | yes      | object is PascalCase identifier   |
+| `CallExpression` (0 args)         | yes      | —                                 |
+| `LogicalExpression`               | yes      | —                                 |
+| `ConditionalExpression`           | yes      | —                                 |
 
 **Note:** Prop values (index 1 in createElement) are not wrapped — only children (index >= 2).
 
@@ -287,7 +289,7 @@ GET /*                  → static file, or try appending JS extensions, else in
 ## Bundler (production)
 
 ```ts
-build(outdir = 'dist/')
+build((outdir = 'dist/'));
 // 1. Reads index.html, extracts <script src="*.jsx/tsx">
 // 2. esbuild.build({ bundle: true, minify: true, plugins: [jsxTranspiler, reactDust] })
 //    - jsxTranspiler: esbuild plugin that calls transpile() for jsx/tsx/ts files

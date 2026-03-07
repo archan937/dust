@@ -1,20 +1,24 @@
 import type { Getter } from 'src/types';
 
-const useEffect = (callback: () => void, deps: unknown[]): (() => void) => {
-  const unsubscribers: (() => void)[] = [];
+const useEffect = (callback: () => unknown, deps: unknown[]): (() => void) => {
+  let cleanup: (() => void) | undefined;
 
-  deps.forEach((dep) => {
-    const unsubscribe = (dep as unknown as Getter<unknown>)?.__register__?.(
-      callback,
-    );
-    if (unsubscribe) {
-      unsubscribers.push(unsubscribe);
-    }
-  });
+  const run = (): void => {
+    cleanup?.();
+    const result = callback();
+    cleanup = typeof result === 'function' ? (result as () => void) : undefined;
+  };
 
-  callback();
+  const unsubscribers = deps
+    .map((dep) => (dep as unknown as Getter<unknown>)?.__register__?.(run))
+    .filter((fn): fn is () => void => typeof fn === 'function');
 
-  return (): void => unsubscribers.forEach((fn) => fn());
+  run();
+
+  return (): void => {
+    cleanup?.();
+    unsubscribers.forEach((fn) => fn());
+  };
 };
 
 export default useEffect;

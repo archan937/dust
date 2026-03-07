@@ -1,10 +1,13 @@
 import type { Getter } from 'src/types';
 import { tracking } from 'src/utils/reactive';
 
+import { ReactiveList } from './reactive-list';
+
 export type Child =
   | (() => unknown)
   | DocumentFragment
   | Node
+  | ReactiveList<unknown>
   | boolean
   | null
   | number
@@ -17,7 +20,7 @@ type Props = Record<string, unknown> | null;
 
 const cleanups = new WeakMap<Node, (() => void)[]>();
 
-const registerCleanup = (node: Node, fn: () => void): void => {
+export const registerCleanup = (node: Node, fn: () => void): void => {
   const existing = cleanups.get(node);
   if (existing) {
     existing.push(fn);
@@ -39,6 +42,50 @@ const mountChild = (parent: Node, child: Child): void => {
 
   if (child instanceof Node) {
     parent.appendChild(child);
+    return;
+  }
+
+  if (child instanceof ReactiveList) {
+    const anchor = document.createComment('');
+    parent.appendChild(anchor);
+    const rl = child as ReactiveList<unknown>;
+
+    interface Entry {
+      item: unknown;
+      node: Node;
+    }
+    let entries: Entry[] = rl.getItems().map((item) => {
+      const node = rl.render(item);
+      parent.insertBefore(node, anchor);
+      return { item, node };
+    });
+
+    const unsubscribe = rl.subscribe(() => {
+      const newItems = rl.getItems();
+      const used = new Set<number>();
+      const newEntries: Entry[] = newItems.map((item) => {
+        const idx = entries.findIndex(
+          (e, i) => !used.has(i) && e.item === item,
+        );
+        if (idx >= 0) {
+          used.add(idx);
+          return entries[idx];
+        }
+        return { item, node: rl.render(item) };
+      });
+      entries.forEach((e, i) => {
+        if (!used.has(i)) {
+          cleanupNode(e.node);
+          e.node.parentNode?.removeChild(e.node);
+        }
+      });
+      newEntries.forEach(({ node }) =>
+        anchor.parentNode?.insertBefore(node, anchor),
+      );
+      entries = newEntries;
+    });
+
+    registerCleanup(anchor, unsubscribe);
     return;
   }
 
@@ -139,6 +186,8 @@ export const createElement = (
 
   const el = document.createElement(type);
 
+  const rawRef = props?.ref as { current: Element } | null | undefined;
+
   if (props) {
     Object.entries(props).forEach(([key, value]) => {
       if (key.startsWith('on') && typeof value === 'function') {
@@ -149,13 +198,15 @@ export const createElement = (
         el.setAttribute('for', String(value));
       } else if (typeof value === 'boolean') {
         if (value) el.setAttribute(key, '');
-      } else if (value !== null && value !== undefined) {
+      } else if (key !== 'ref' && value !== null && value !== undefined) {
         el.setAttribute(key, String(value));
       }
     });
   }
 
   children.forEach((child) => mountChild(el, child));
+
+  if (rawRef) rawRef.current = el;
 
   return el;
 };

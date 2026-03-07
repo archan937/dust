@@ -88,6 +88,19 @@ describe('Core', () => {
       expect(fired).toBe(true);
     });
 
+    test('ref object is set to the created element', () => {
+      const ref = { current: null as Element | null };
+      createElement('div', { ref });
+      expect(ref.current).not.toBeNull();
+      expect((ref.current as HTMLElement).tagName).toBe('DIV');
+    });
+
+    test('ref object is set after children are mounted', () => {
+      const ref = { current: null as Element | null };
+      createElement('div', { ref }, 'child');
+      expect(ref.current?.childNodes.length).toBe(1);
+    });
+
     // ── Static children ──────────────────────────────────────────────────────────
 
     test('appends Node child', () => {
