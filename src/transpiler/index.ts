@@ -25,7 +25,7 @@ const hash = (str: string): string => {
     h = (h << 5) - h + char;
     h = h & h;
   }
-  return h.toString(36);
+  return (h >>> 0).toString(36);
 };
 
 export const clearCache = (): void => {
@@ -65,6 +65,7 @@ export const transpile = (code: string, filename = 'virtual.jsx'): string => {
 
     return transpiled;
   } catch (error) {
-    throw new Error(`JSX transpilation failed: ${(error as Error).message}`);
+    const message = error instanceof Error ? error.message : String(error);
+    throw new Error(`JSX transpilation failed: ${message}`);
   }
 };

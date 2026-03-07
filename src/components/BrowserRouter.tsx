@@ -1,3 +1,4 @@
+import { cleanupNode } from 'src/core/createElement';
 import { matchRoute, registerRoutes } from 'src/router';
 
 type Component = (...args: unknown[]) => Node;
@@ -43,7 +44,7 @@ const collectRoutes = (nodes: Node[], prefix = '/'): Routes =>
       return {
         ...acc,
         [path]: (): DocumentFragment => {
-          window.location.href = target;
+          history.pushState({}, '', target);
           return document.createDocumentFragment();
         },
       };
@@ -61,9 +62,10 @@ const BrowserRouter = (
   const container = document.createElement('div');
 
   // Register handler BEFORE registerRoutes so the initial route renders immediately.
-  matchRoute((_path, component) =>
-    container.replaceChildren(component() as Node),
-  );
+  matchRoute((_path, component) => {
+    cleanupNode(container);
+    container.replaceChildren(component() as Node);
+  });
   registerRoutes(collectRoutes(routeNodes));
 
   return container;

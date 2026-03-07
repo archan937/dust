@@ -23,6 +23,21 @@ export default [
       },
     },
   },
+  {
+    files: [
+      'src/server/**',
+      'src/bundler/**',
+      'src/transpiler/**',
+      'src/utils/index.ts',
+      'bin/**',
+    ],
+    languageOptions: {
+      globals: {
+        ...globals.node,
+        Bun: 'readonly',
+      },
+    },
+  },
   eslint.configs.recommended,
   ...tseslint.configs.strict,
   ...tseslint.configs.stylistic,

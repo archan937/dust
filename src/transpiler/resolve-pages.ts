@@ -40,9 +40,10 @@ export const buildPagesPreamble = (
 
   const imports = pages
     .map((p, i) => {
-      const importPath = rootDir
+      const rawPath = rootDir
         ? '/' + path.relative(rootDir, p.importPath)
         : p.importPath;
+      const importPath = rawPath.replace(/\\/g, '/');
       return `import Page${i + 1} from '${importPath}';`;
     })
     .join('\n');

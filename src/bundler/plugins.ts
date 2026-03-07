@@ -26,26 +26,6 @@ export const jsxTranspiler: Plugin = {
   },
 };
 
-// ── Pages resolver ─────────────────────────────────────────────────────────────
-
-export const pagesResolver = (acc: string[]): Plugin => ({
-  name: 'pages-resolver',
-  setup(build: PluginBuild): void {
-    build.onLoad({ filter: /\.(j|t)sx$/ }, (arg) => {
-      const source = fs.readFileSync(arg.path, 'utf8');
-      const pages = resolvePages(path.dirname(arg.path), source);
-      acc.push(...pages.map((p) => p.importPath));
-      return { contents: source, loader: 'jsx' };
-    });
-
-    build.onResolve({ filter: /.*/ }, (arg) => {
-      if (arg.path === 'dust') {
-        return { path: path.join(ROOT, 'src/index.ts'), namespace: 'file' };
-      }
-    });
-  },
-});
-
 // ── React → Dust shim ──────────────────────────────────────────────────────────
 
 export const reactDust: Plugin = {

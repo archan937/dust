@@ -13,6 +13,27 @@ type Child =
 
 type Props = Record<string, unknown> | null;
 
+// ── Cleanup registry ──────────────────────────────────────────────────────────
+
+const cleanups = new WeakMap<Node, (() => void)[]>();
+
+const registerCleanup = (node: Node, fn: () => void): void => {
+  const existing = cleanups.get(node);
+  if (existing) {
+    existing.push(fn);
+  } else {
+    cleanups.set(node, [fn]);
+  }
+};
+
+export const cleanupNode = (node: Node): void => {
+  cleanups.get(node)?.forEach((fn) => fn());
+  cleanups.delete(node);
+  Array.from(node.childNodes).forEach(cleanupNode);
+};
+
+// ── Mount ─────────────────────────────────────────────────────────────────────
+
 const mountChild = (parent: Node, child: Child): void => {
   if (child === null || child === undefined || child === false) return;
 
@@ -28,17 +49,22 @@ const mountChild = (parent: Node, child: Child): void => {
     tracking.current = (registerFn): void => {
       trackedDeps.push(registerFn);
     };
-    const value = child();
-    tracking.current = prevTracker;
+    let value: unknown;
+    try {
+      value = child();
+    } finally {
+      tracking.current = prevTracker;
+    }
 
     const getter = value as Getter<unknown>;
 
     // child returned a state getter directly (e.g. `() => count`) → reactive text.
     if (typeof getter === 'function' && getter.__register__) {
       const text = document.createTextNode(String(getter()));
-      getter.__register__(() => {
+      const unsubscribe = getter.__register__(() => {
         text.textContent = String(getter());
       });
+      registerCleanup(text, unsubscribe);
       parent.appendChild(text);
       return;
     }
@@ -59,13 +85,16 @@ const mountChild = (parent: Node, child: Child): void => {
         const update = (): void => {
           const next = child() as Child;
           const nextNode = next instanceof Node ? next : null;
-          if (current && current.parentNode)
-            current.parentNode.removeChild(current);
+          if (current) {
+            cleanupNode(current);
+            if (current.parentNode) current.parentNode.removeChild(current);
+          }
           current = nextNode;
           if (current && anchor.parentNode)
             anchor.parentNode.insertBefore(current, anchor);
         };
-        trackedDeps.forEach((reg) => reg(update));
+        const unsubscribers = trackedDeps.map((reg) => reg(update));
+        registerCleanup(anchor, () => unsubscribers.forEach((fn) => fn()));
         return;
       }
 
@@ -74,7 +103,8 @@ const mountChild = (parent: Node, child: Child): void => {
       const update = (): void => {
         text.textContent = String(child());
       };
-      trackedDeps.forEach((reg) => reg(update));
+      const unsubscribers = trackedDeps.map((reg) => reg(update));
+      registerCleanup(text, () => unsubscribers.forEach((fn) => fn()));
       parent.appendChild(text);
       return;
     }
@@ -112,7 +142,11 @@ export const createElement = (
         el.addEventListener(key.slice(2).toLowerCase(), value as EventListener);
       } else if (key === 'className') {
         el.className = String(value);
-      } else if (value !== null && value !== undefined && value !== false) {
+      } else if (key === 'htmlFor') {
+        el.setAttribute('for', String(value));
+      } else if (typeof value === 'boolean') {
+        if (value) el.setAttribute(key, '');
+      } else if (value !== null && value !== undefined) {
         el.setAttribute(key, String(value));
       }
     });

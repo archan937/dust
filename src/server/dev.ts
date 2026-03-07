@@ -1,7 +1,7 @@
 import { watch } from 'node:fs';
 import path from 'node:path';
 
-import { transpile } from 'src/transpiler';
+import { clearCache, transpile } from 'src/transpiler';
 import { buildPagesPreamble, resolvePages } from 'src/transpiler/resolve-pages';
 import { CWD, PORT, ROOT } from 'src/utils';
 
@@ -43,17 +43,17 @@ const buildDust = async (): Promise<string> => {
   return dustBundle;
 };
 
-// Watch Dust source — invalidate bundle and trigger reload
 watch(path.join(ROOT, 'src'), { recursive: true }, (_, filename) => {
   if (filename?.match(/\.(j|t)sx?$/)) {
     dustBundle = null;
+    clearCache();
     scheduleReload();
   }
 });
 
-// Watch user's app — trigger reload on any file change
 watch(CWD, { recursive: true }, (_, filename) => {
   if (filename && !filename.includes('node_modules')) {
+    clearCache();
     scheduleReload();
   }
 });
@@ -70,10 +70,15 @@ const injectDevScripts = (html: string): string =>
     )
     .replace('</body>', `  ${HMR_SCRIPT}\n</body>`);
 
-const serveHtml = async (filePath: string): Promise<Response> =>
-  new Response(injectDevScripts(await Bun.file(filePath).text()), {
+const serveHtml = async (filePath: string): Promise<Response> => {
+  const file = Bun.file(filePath);
+  if (!(await file.exists())) {
+    return new Response('Not found', { status: 404 });
+  }
+  return new Response(injectDevScripts(await file.text()), {
     headers: { 'Content-Type': 'text/html' },
   });
+};
 
 const serveScript = async (filePath: string): Promise<Response> => {
   try {
@@ -102,6 +107,11 @@ export const dev = (): number =>
       const url = new URL(req.url);
       const pathname = url.pathname.replaceAll('..', '');
       const filePath = path.join(CWD, pathname);
+
+      const rel = path.relative(CWD, filePath);
+      if (rel.startsWith('..') || path.isAbsolute(rel)) {
+        return new Response('Forbidden', { status: 403 });
+      }
 
       if (pathname === '/sw.js') {
         return new Response('function SW() {}', {
@@ -141,7 +151,6 @@ export const dev = (): number =>
         }
       }
 
-      // Explicit JS extension — transpile or 404
       if (/\.(j|t)sx?$/.test(pathname)) {
         const file = Bun.file(filePath);
         return (await file.exists())
@@ -149,7 +158,6 @@ export const dev = (): number =>
           : new Response('Not found', { status: 404 });
       }
 
-      // Static file
       const file = Bun.file(filePath);
       if (await file.exists()) {
         return file.type.startsWith('text/html')
@@ -157,7 +165,6 @@ export const dev = (): number =>
           : new Response(file);
       }
 
-      // Extension resolution for bare module imports (e.g. './App' → './App.jsx')
       for (const ext of JS_EXTENSIONS) {
         const candidate = `${filePath}${ext}`;
         if (await Bun.file(candidate).exists()) {
@@ -165,7 +172,6 @@ export const dev = (): number =>
         }
       }
 
-      // SPA fallback
       return serveHtml(path.join(CWD, 'index.html'));
     },
   }).port ?? 0;

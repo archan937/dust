@@ -364,7 +364,7 @@ describe('Transpiler', () => {
 
   describe('caching', () => {
     test('caches transpiled code', () => {
-      const key = 'virtual.jsx:-tockvm';
+      const key = 'virtual.jsx:15crh3i';
 
       const hasSpy = spyOn(Map.prototype, 'has').mockImplementation(
         (k: string) => k === key,

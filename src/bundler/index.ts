@@ -20,7 +20,8 @@ export const bundle = async (
     ...options,
   });
 
-  return outputFiles?.[0].text ?? '';
+  if (!outputFiles?.length) throw new Error('esbuild produced no output');
+  return outputFiles[0].text;
 };
 
 export const build = async (outdir = path.join(CWD, 'dist')): Promise<void> => {

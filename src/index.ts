@@ -1,10 +1,6 @@
 import * as core from './core';
-import * as types from './types';
 
-const Dust = {
-  ...core,
-  ...types,
-} as const;
+const Dust = { ...core } as const;
 
 export default Dust;
 export * from './components';
