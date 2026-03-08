@@ -118,41 +118,42 @@ const mountChild = (parent: Node, child: Child): void => {
 
     // child has reactive deps (e.g. `() => count()`, `() => show() && <p/>`).
     if (trackedDeps.length > 0) {
-      if (
-        value instanceof Node ||
-        value === null ||
-        value === undefined ||
-        typeof value === 'boolean'
-      ) {
-        // Reactive DOM: use an anchor comment for in-place replacement.
-        const anchor = document.createComment('');
-        parent.appendChild(anchor);
-        let current: Node | null = value instanceof Node ? value : null;
-        if (current) parent.insertBefore(current, anchor);
-        const update = (): void => {
-          const next = child() as Child;
-          const nextNode = next instanceof Node ? next : null;
-          if (current) {
-            cleanupNode(current);
-            if (current.parentNode) current.parentNode.removeChild(current);
-          }
-          current = nextNode;
-          if (current && anchor.parentNode)
-            anchor.parentNode.insertBefore(current, anchor);
-        };
-        const unsubscribers = trackedDeps.map((reg) => reg(update));
-        registerCleanup(anchor, () => unsubscribers.forEach((fn) => fn()));
-        return;
-      }
+      // Use an anchor comment for in-place replacement.
+      // Tracks an array of nodes because a DocumentFragment transfers (and
+      // empties) its children on insertion — we must track the children
+      // themselves, not the fragment, so we can remove them on the next update.
+      const anchor = document.createComment('');
+      parent.appendChild(anchor);
 
-      // Reactive primitive (number, string).
-      const text = document.createTextNode(String(value));
+      const commit = (v: unknown): Node[] => {
+        const p = anchor.parentNode!;
+        if (v === null || v === undefined || typeof v === 'boolean') return [];
+        if (v instanceof DocumentFragment) {
+          const nodes = Array.from(v.childNodes);
+          nodes.forEach((n) => p.insertBefore(n, anchor));
+          return nodes;
+        }
+        const node =
+          v instanceof Node ? v : document.createTextNode(String(v));
+        p.insertBefore(node, anchor);
+        return [node];
+      };
+
+      const remove = (nodes: Node[]): void => {
+        nodes.forEach((n) => {
+          cleanupNode(n);
+          n.parentNode?.removeChild(n);
+        });
+      };
+
+      let current = commit(value);
+
       const update = (): void => {
-        text.textContent = String(child());
+        remove(current);
+        current = commit(child() as unknown);
       };
       const unsubscribers = trackedDeps.map((reg) => reg(update));
-      registerCleanup(text, () => unsubscribers.forEach((fn) => fn()));
-      parent.appendChild(text);
+      registerCleanup(anchor, () => unsubscribers.forEach((fn) => fn()));
       return;
     }
 

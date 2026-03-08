@@ -1,3 +1,5 @@
+import './jsx.d.ts';
+
 import * as core from './core';
 
 const Dust = { ...core } as const;

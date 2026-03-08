@@ -1,6 +1,7 @@
 import { ReactiveList } from 'src/core/reactive-list';
 import { getType, isReactiveProperty, tracking } from 'src/utils/reactive';
-import type { Getter, SetterFunction, State } from 'types';
+
+import type { Getter, SetterFunction, State } from '../../types';
 
 const MUTATING = new Set([
   'push',
