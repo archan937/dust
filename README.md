@@ -6,6 +6,10 @@ A minimalistic reactive JavaScript library for building dynamic, state-driven co
 
 - Reactive `useState` with Proxy-based nested reactivity
 - `useEffect` for side-effect subscriptions
+- `useRef` for mutable DOM references
+- `createContext` / `useContext` for prop-drilling-free state sharing
+- `ReactiveList` — identity-based list reconciliation via `items.map()`
+- `css` tagged template literal and `cx` utility for zero-cost CSS-in-JS
 - JSX support via a custom Babel transpiler (`Dust.createElement`)
 - File-system routing (`DirectoryRouter`) like Next.js and declarative JSX routing (`BrowserRouter`) like React Router DOM
 - Dev server with HMR, production bundler, and preview server — all via the `dust` CLI
@@ -61,6 +65,144 @@ createRoot(document.getElementById('root')).render(<App />);
 dust dev      # start dev server with HMR (default port 3000)
 dust build    # bundle to dist/
 dust preview  # serve dist/
+```
+
+## How reactivity works
+
+`useState` returns a **Getter** — a callable object that doubles as a live subscription handle. Calling it (`count()`) reads the current value and, when called inside a reactive context, registers the caller as a dependent that re-runs whenever the value changes.
+
+No virtual DOM, no diffing. Each reactive expression owns one real DOM node. When state changes, only that node is updated in place.
+
+### JSX auto-wiring
+
+Writing `{count()}` by hand in every JSX expression would be tedious, so the Babel transpiler handles it automatically. A bare identifier or zero-argument call in JSX children is wrapped in an arrow function before `Dust.createElement` sees it:
+
+```jsx
+// What you write:
+<p>Count: {count}</p>
+
+// What the transpiler emits:
+createElement('p', null, 'Count: ', () => count)
+```
+
+The runtime detects the function child, calls it with dependency tracking enabled, and subscribes the resulting DOM text node to `count` directly. When `setCount` fires, only that text node updates — the component function is never called again.
+
+This is why:
+
+- In **JSX**, write `{count}` or `{count()}` — both work, the transpiler wraps them
+- Outside JSX (event handlers, `useEffect`, plain JS), call `count()` explicitly to read the value
+
+```jsx
+// JSX — transpiler handles it
+<p>{count}</p>
+
+// Outside JSX — call explicitly
+useEffect(() => {
+  document.title = `Count: ${count()}`;
+}, [count]);
+```
+
+## API
+
+### useState
+
+```jsx
+const [count, setCount] = useState(0);
+
+// Read value (also tracks as dependency inside JSX)
+count()
+
+// Update
+setCount(1);
+setCount((n) => n + 1);
+
+// Nested object state — properties become reactive Getters automatically
+const [user, setUser] = useState({ name: 'Alice' });
+user.name() // reactive Getter
+```
+
+### useEffect
+
+```jsx
+const [running, setRunning] = useState(false);
+
+useEffect(() => {
+  if (!running()) return;
+  const id = setInterval(() => tick(), 1000);
+  return () => clearInterval(id); // cleanup on next run or unmount
+}, [running]);
+```
+
+### useRef
+
+```jsx
+const inputRef = useRef(null);
+
+<input ref={inputRef} />
+
+// Later:
+inputRef.current.focus();
+```
+
+### createContext / useContext
+
+```jsx
+const ThemeCtx = createContext('light');
+
+function App() {
+  return (
+    <ThemeCtx.Provider value="dark">
+      <Child />
+    </ThemeCtx.Provider>
+  );
+}
+
+function Child() {
+  const theme = useContext(ThemeCtx); // 'dark'
+  return <p>{theme}</p>;
+}
+```
+
+### ReactiveList — reactive lists via `items.map()`
+
+Calling `.map()` on a state Getter returns a `ReactiveList` that reconciles DOM nodes by item identity when the list changes. Each item's render function can create its own local state.
+
+```jsx
+const [items, setItems] = useState([{ id: 1, text: 'Buy milk' }]);
+
+const list = items.map((item) => {
+  const [done, setDone] = useState(false);
+  return (
+    <li onClick={() => setDone((v) => !v)}>
+      {done() ? <s>{item.text}</s> : item.text}
+    </li>
+  );
+});
+
+// Use in JSX — nodes are reused when item references stay the same
+<ul>{list}</ul>
+```
+
+### css / cx
+
+`css` injects scoped styles into a single `<style>` tag and returns a stable class name. `cx` joins truthy class names.
+
+```jsx
+import Dust, { css, cx } from 'dust';
+
+const btn = css`
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+`;
+
+const btnPrimary = css`
+  background: royalblue;
+  color: white;
+`;
+
+const Button = ({ primary, label }) => (
+  <button className={cx(btn, primary && btnPrimary)}>{label}</button>
+);
 ```
 
 ## Routing
