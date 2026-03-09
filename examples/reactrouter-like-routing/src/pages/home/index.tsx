@@ -32,22 +32,26 @@ function Home() {
   return (
     <>
       <div className={heroWrap}>
-        <div className={badge}>✦ Zero re-renders by design</div>
+        <div className={badge}>✦ Reactive UIs, built differently.</div>
         <h1 className={headline}>
-          Reactive UIs,
+          Zero re-renders,
           <br />
-          built <strong>differently</strong>.
+          <strong>by design</strong>.
         </h1>
         <p className={sub}>
-          Dust components run <strong>once</strong>. State is a reactive proxy.
-          Only the exact DOM nodes that depend on changed state update — nothing
-          else.
+          <strong>No virtual DOM.</strong>{' '}
+          <strong>No diffing.</strong>{' '}
+          <strong>No wasted renders.</strong>{' '}
+          <strong>No rerender management.</strong>{' '}
+          Components run once — state updates flow directly
+          to the <em>exact DOM nodes</em> that depend on them.{' '}
+          <strong>No useMemo, no useCallback, no fighting the runtime.</strong>
         </p>
         <div className={ctaRow}>
           <a href="/playground" className={btnPrimary}>
             Try the playground →
           </a>
-          <a href="/blog/1" className={btnGhost}>
+          <a href="/docs" className={btnGhost}>
             Read the docs
           </a>
         </div>
@@ -62,9 +66,9 @@ function Home() {
           onInput={onInput}
         />
         <p className={demoOutput}>
-          {name() ? (
+          {name ? (
             <>
-              Hello, <strong>{name()}</strong>! Welcome to Dust.
+              Hello, <strong>{name}</strong>! Welcome to Dust.
             </>
           ) : (
             'Your greeting appears here, reactively.'

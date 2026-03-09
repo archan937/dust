@@ -1,5 +1,6 @@
 import Dust, { BrowserRouter, Route } from 'dust';
 
+import Docs from './pages/docs';
 import Home from './pages/home';
 import Playground from './pages/playground';
 import Post from './pages/post';
@@ -13,6 +14,9 @@ function Nav() {
       </a>
       <a href="/" className={navLink}>
         Home
+      </a>
+      <a href="/docs" className={navLink}>
+        Docs
       </a>
       <a href="/playground" className={navLink}>
         Playground
@@ -31,6 +35,7 @@ function App() {
       <div className={pageWrap}>
         <BrowserRouter>
           <Route path="/" component={Home} />
+          <Route path="/docs" component={Docs} />
           <Route path="/playground" component={Playground} />
           <Route path="/blog/:id" component={Post} />
         </BrowserRouter>

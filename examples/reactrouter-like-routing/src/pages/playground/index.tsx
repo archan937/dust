@@ -62,7 +62,7 @@ function GreetingDisplay() {
   return (
     <div className={ctxOutputEl}>
       <span>
-        👋 Hello, <strong>{name()}</strong>!
+        👋 Hello, <strong>{name || 'Dust'}</strong>!
       </span>
       <span className={ctxBadge}>useContext</span>
     </div>
@@ -266,7 +266,7 @@ function Playground() {
             }
           />
           <p className={refMeta}>
-            chars: <span>{charCount()}</span>
+            chars: <span>{charCount}</span>
           </p>
           <div className={refBtnRow}>
             <button

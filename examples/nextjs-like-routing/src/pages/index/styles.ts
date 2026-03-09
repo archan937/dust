@@ -11,14 +11,14 @@ export const badge = css`
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
-  padding: 0.3rem 0.85rem;
+  padding: 0.4rem 1rem;
   border-radius: 9999px;
-  border: 1px solid rgba(129, 140, 248, 0.3);
-  background: rgba(129, 140, 248, 0.08);
-  color: #818cf8;
-  font-size: 0.78rem;
-  font-weight: 500;
-  letter-spacing: 0.04em;
+  border: 1px solid rgba(129, 140, 248, 0.45);
+  background: rgba(129, 140, 248, 0.1);
+  color: #a5b4fc;
+  font-size: 0.82rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
   margin-bottom: 2rem;
 `;
@@ -45,7 +45,17 @@ export const sub = css`
   margin: 0 auto 2.5rem;
   line-height: 1.7;
   & strong {
+    color: #f4f4f5;
+    font-style: normal;
+  }
+  & em {
     color: #a1a1aa;
+    font-weight: 600;
+    font-style: normal;
+  }
+  & span {
+    color: #f4f4f5;
+    font-weight: 400;
   }
 `;
 

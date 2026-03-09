@@ -18,6 +18,28 @@ const wrapInArrow = (path: NodePath): void => {
   path.replaceWith(t.arrowFunctionExpression([], path.node as t.Expression));
 };
 
+const makeDustCall = (arg: t.Expression): t.CallExpression =>
+  t.callExpression(
+    t.memberExpression(t.identifier('Dust'), t.identifier('call')),
+    [arg],
+  );
+
+// Wraps a bare Identifier or non-computed MemberExpression with Dust.call(...)
+// so Getters are auto-called in expression positions (test, operand, etc.)
+const callWrapIdent = (nodePath: NodePath): void => {
+  const node = nodePath.node;
+  if (t.isIdentifier(node) && !isComponentRef(node.name)) {
+    nodePath.replaceWith(makeDustCall(node));
+  } else if (
+    t.isMemberExpression(node) &&
+    !node.computed &&
+    t.isIdentifier(node.object) &&
+    !isComponentRef(node.object.name)
+  ) {
+    nodePath.replaceWith(makeDustCall(node));
+  }
+};
+
 const jsxGetterConsumerPlugin = (): PluginObj => ({
   visitor: {
     CallExpression(path: NodePath<t.CallExpression>): void {
@@ -35,14 +57,26 @@ const jsxGetterConsumerPlugin = (): PluginObj => ({
       }
     },
     LogicalExpression(path: NodePath<t.LogicalExpression>): void {
-      if (isChildOfDustCreateElement(path) >= 2) {
-        wrapInArrow(path);
-      }
+      if (isChildOfDustCreateElement(path) < 2) return;
+      callWrapIdent(path.get('left'));
+      callWrapIdent(path.get('right'));
+      wrapInArrow(path);
     },
     ConditionalExpression(path: NodePath<t.ConditionalExpression>): void {
-      if (isChildOfDustCreateElement(path) >= 2) {
-        wrapInArrow(path);
-      }
+      if (isChildOfDustCreateElement(path) < 2) return;
+      callWrapIdent(path.get('test'));
+      wrapInArrow(path);
+    },
+    BinaryExpression(path: NodePath<t.BinaryExpression>): void {
+      if (isChildOfDustCreateElement(path) < 2) return;
+      callWrapIdent(path.get('left'));
+      callWrapIdent(path.get('right'));
+      wrapInArrow(path);
+    },
+    UnaryExpression(path: NodePath<t.UnaryExpression>): void {
+      if (isChildOfDustCreateElement(path) < 2) return;
+      callWrapIdent(path.get('argument'));
+      wrapInArrow(path);
     },
     Identifier(path: NodePath<t.Identifier>): void {
       if (isComponentRef(path.node.name)) return;

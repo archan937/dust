@@ -170,6 +170,13 @@ export const dev = (): number =>
         if (await Bun.file(candidate).exists()) {
           return serveScript(candidate);
         }
+        const indexCandidate = path.join(filePath, `index${ext}`);
+        if (await Bun.file(indexCandidate).exists()) {
+          return new Response(null, {
+            status: 302,
+            headers: { Location: `${pathname}/index${ext}` },
+          });
+        }
       }
 
       return serveHtml(path.join(CWD, 'index.html'));

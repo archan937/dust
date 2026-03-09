@@ -1,3 +1,4 @@
+export { call } from './call';
 export * from './context';
 export * from './createElement';
 export * from './createRoot';

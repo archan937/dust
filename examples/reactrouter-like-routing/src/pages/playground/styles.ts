@@ -81,7 +81,9 @@ export const swBtnRow = css`
 `;
 
 export const swBtn = css`
-  padding: 0.55rem 1.4rem;
+  padding: 0 1.4rem;
+  min-width: 7.5rem;
+  height: 2.25rem;
   border-radius: 8px;
   font-size: 0.875rem;
   font-weight: 600;

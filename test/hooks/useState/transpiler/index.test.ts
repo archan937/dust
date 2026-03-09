@@ -382,7 +382,7 @@ describe('Transpiler', () => {
         }
       `;
       const js = transpile(jsx);
-      expect(js).toContain('() => show &&');
+      expect(js).toContain('() => Dust.call(show) &&');
     });
 
     test('wraps conditional expression in JSX children', () => {
@@ -393,7 +393,51 @@ describe('Transpiler', () => {
         }
       `;
       const js = transpile(jsx);
-      expect(js).toContain('() => show ?');
+      expect(js).toContain('() => Dust.call(show) ?');
+    });
+
+    test('wraps binary expression operands in JSX children', () => {
+      const jsx = `
+        function App() {
+          const [count, setCount] = useState(0);
+          return <div>{count + 1}</div>;
+        }
+      `;
+      const js = transpile(jsx);
+      expect(js).toContain('() => Dust.call(count) + 1');
+    });
+
+    test('wraps unary expression argument in JSX children', () => {
+      const jsx = `
+        function App() {
+          const [running, setRunning] = useState(false);
+          return <div>{!running}</div>;
+        }
+      `;
+      const js = transpile(jsx);
+      expect(js).toContain('() => !Dust.call(running)');
+    });
+
+    test('call-wraps identifier in conditional test, leaves consequent/alternate', () => {
+      const jsx = `
+        function App() {
+          const [done, setDone] = useState(false);
+          return <div>{done ? 'yes' : 'no'}</div>;
+        }
+      `;
+      const js = transpile(jsx);
+      expect(js).toContain("() => Dust.call(done) ? 'yes' : 'no'");
+    });
+
+    test('call-wraps identifier in logical left, skips string literal right', () => {
+      const jsx = `
+        function App() {
+          const [name, setName] = useState('');
+          return <div>{name || 'Guest'}</div>;
+        }
+      `;
+      const js = transpile(jsx);
+      expect(js).toContain("() => Dust.call(name) || 'Guest'");
     });
 
     test('does not wrap PascalCase component references in props or children', () => {

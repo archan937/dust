@@ -11,6 +11,9 @@ function Nav() {
       <a href="/" className={navLink}>
         Home
       </a>
+      <a href="/docs" className={navLink}>
+        Docs
+      </a>
       <a href="/playground" className={navLink}>
         Playground
       </a>

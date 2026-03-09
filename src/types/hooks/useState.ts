@@ -1,4 +1,5 @@
 export type Getter<T> = (() => T) & {
+  new(): never;
   __register__: (fn: () => void) => () => void;
   __setter__: (value: T | ((prev: T) => T)) => void;
 } & {
