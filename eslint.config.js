@@ -11,7 +11,6 @@ export default [
       '**/eslint.config.js',
       '**/dist/',
       '**/node_modules/',
-      'examples/',
     ],
   },
   {

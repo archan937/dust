@@ -1,38 +1,34 @@
 import Dust, { DirectoryRouter } from 'dust';
 
-import { nav, navLogo, navLink, pageWrap } from './App.styles';
+import s from './App.styles';
 
-function Nav() {
-  return (
-    <nav className={nav}>
-      <a href="/" className={navLogo}>
-        ⚡ dust
-      </a>
-      <a href="/" className={navLink}>
-        Home
-      </a>
-      <a href="/docs" className={navLink}>
-        Docs
-      </a>
-      <a href="/playground" className={navLink}>
-        Playground
-      </a>
-      <a href="/blog/1" className={navLink}>
-        Blog
-      </a>
-    </nav>
-  );
-}
+const Nav = (): JSX.Element => (
+  <nav className={s.nav.base}>
+    <a href="/" className={s.nav.logo}>
+      ⚡ dust
+    </a>
+    <a href="/" className={s.nav.link}>
+      Home
+    </a>
+    <a href="/docs" className={s.nav.link}>
+      Docs
+    </a>
+    <a href="/playground" className={s.nav.link}>
+      Playground
+    </a>
+    <a href="/blog/1" className={s.nav.link}>
+      Blog
+    </a>
+  </nav>
+);
 
-function App() {
-  return (
-    <>
-      <Nav />
-      <div className={pageWrap}>
-        <DirectoryRouter pages="./pages" />
-      </div>
-    </>
-  );
-}
+const App = (): JSX.Element => (
+  <>
+    <Nav />
+    <div className={s.page.wrap}>
+      <DirectoryRouter pages="./pages" />
+    </div>
+  </>
+);
 
 export default App;

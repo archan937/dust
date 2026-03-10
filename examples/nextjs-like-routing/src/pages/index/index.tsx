@@ -1,71 +1,51 @@
 import Dust, { useState } from 'dust';
 
 import { features } from './data';
-import {
-  heroWrap,
-  badge,
-  headline,
-  sub,
-  ctaRow,
-  btnPrimary,
-  btnGhost,
-  demoWrap,
-  demoEyebrow,
-  demoInput,
-  demoOutput,
-  sectionWrap,
-  sectionTitle,
-  grid,
-  card,
-  cardIcon,
-  cardName,
-  cardDesc,
-} from './styles';
+import s from './styles';
 
-function Home() {
+const Home = (): JSX.Element => {
   const [name, setName] = useState('');
   const [featureItems] = useState(features);
 
-  const onInput = (e: InputEvent) =>
+  const onInput = (e: InputEvent): void =>
     setName((e.target as HTMLInputElement).value);
 
   return (
     <>
-      <div className={heroWrap}>
-        <div className={badge}>✦ Reactive UIs, built differently.</div>
-        <h1 className={headline}>
+      <div className={s.hero.wrap}>
+        <div className={s.hero.badge}>✦ Reactive UIs, built differently.</div>
+        <h1 className={s.hero.headline}>
           Zero re-renders,
           <br />
           <strong>by design</strong>.
         </h1>
-        <p className={sub}>
-          <strong>No virtual DOM.</strong>{' '}
-          <strong>No diffing.</strong>{' '}
+        <p className={s.hero.sub}>
+          <strong>No virtual DOM.</strong> <strong>No diffing.</strong>{' '}
           <strong>No wasted renders.</strong>{' '}
-          <strong>No rerender management.</strong>{' '}
-          Components run once — state updates flow directly
-          to the <em>exact DOM nodes</em> that depend on them.{' '}
+          <strong>No rerender management.</strong> Components run once — state
+          updates flow directly to the <em>exact DOM nodes</em> that depend on
+          them.{' '}
           <strong>No useMemo, no useCallback, no fighting the runtime.</strong>
         </p>
-        <div className={ctaRow}>
-          <a href="/playground" className={btnPrimary}>
+        <div className={s.cta.row}>
+          <a href="/playground" className={s.cta.primary}>
             Try the playground →
           </a>
-          <a href="/docs" className={btnGhost}>
+          <a href="/docs" className={s.cta.ghost}>
             Read the docs
           </a>
         </div>
       </div>
 
-      <div className={demoWrap}>
-        <p className={demoEyebrow}>⚡ Live useState demo — type below</p>
+      <div className={s.demo.wrap}>
+        <p className={s.demo.eyebrow}>⚡ Live useState demo — type below</p>
         <input
-          className={demoInput}
+          className={s.demo.input}
           type="text"
           placeholder="What's your name?"
           onInput={onInput}
         />
-        <p className={demoOutput}>
+        <p className={s.demo.output}>
           {name ? (
             <>
               Hello, <strong>{name}</strong>! Welcome to Dust.
@@ -76,20 +56,22 @@ function Home() {
         </p>
       </div>
 
-      <div className={sectionWrap}>
-        <h2 className={sectionTitle}>Everything you need, nothing you don't</h2>
-        <div className={grid}>
+      <div className={s.section.wrap}>
+        <h2 className={s.section.title}>
+          Everything you need, nothing you don't
+        </h2>
+        <div className={s.card.grid}>
           {featureItems.map((f) => (
-            <div className={card}>
-              <span className={cardIcon}>{f.icon}</span>
-              <code className={cardName}>{f.name}</code>
-              <p className={cardDesc}>{f.desc}</p>
+            <div className={s.card.base}>
+              <span className={s.card.icon}>{f.icon}</span>
+              <code className={s.card.name}>{f.name}</code>
+              <p className={s.card.desc}>{f.desc}</p>
             </div>
           ))}
         </div>
       </div>
     </>
   );
-}
+};
 
 export default Home;

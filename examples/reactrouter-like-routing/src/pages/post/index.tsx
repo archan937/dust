@@ -1,21 +1,9 @@
-import Dust, { cx, useState, useParams } from 'dust';
+import Dust, { cx, useParams, useState } from 'dust';
 
 import { posts } from './data';
-import {
-  articleOuter,
-  articleMeta,
-  articleTag,
-  articleId,
-  articleTitle,
-  articleLead,
-  articleBody,
-  articleSection,
-  navRow,
-  navLink,
-  navLinkNext,
-} from './styles';
+import s from './styles';
 
-function Post() {
+const Post = (): JSX.Element => {
   const { id } = useParams();
 
   const post = posts[id] ?? {
@@ -30,31 +18,31 @@ function Post() {
   const [sections] = useState(post.sections);
 
   return (
-    <article className={articleOuter}>
-      <div className={articleMeta}>
-        <span className={articleTag}>Blog</span>
-        <span className={articleId}>post #{id}</span>
+    <article className={s.article.outer}>
+      <div className={s.article.meta}>
+        <span className={s.article.tag}>Blog</span>
+        <span className={s.article.id}>post #{id}</span>
       </div>
-      <h1 className={articleTitle}>{post.title}</h1>
-      <p className={articleLead}>{post.lead}</p>
-      <div className={articleBody}>
-        {sections.map((s) => (
-          <div className={articleSection}>
-            <h2>{s.heading}</h2>
-            <p>{s.body}</p>
+      <h1 className={s.article.title}>{post.title}</h1>
+      <p className={s.article.lead}>{post.lead}</p>
+      <div className={s.article.body}>
+        {sections.map((sec) => (
+          <div className={s.article.section}>
+            <h2>{sec.heading}</h2>
+            <p>{sec.body}</p>
           </div>
         ))}
       </div>
-      <div className={navRow}>
-        <a href={`/blog/${prevId}`} className={navLink}>
+      <div className={s.nav.row}>
+        <a href={`/blog/${prevId}`} className={s.nav.link}>
           ← Previous
         </a>
-        <a href={`/blog/${nextId}`} className={cx(navLink, navLinkNext)}>
+        <a href={`/blog/${nextId}`} className={cx(s.nav.link, s.nav.next)}>
           Next →
         </a>
       </div>
     </article>
   );
-}
+};
 
 export default Post;

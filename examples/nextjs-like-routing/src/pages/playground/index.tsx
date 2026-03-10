@@ -1,53 +1,13 @@
 import Dust, {
+  createContext,
   cx,
-  useState,
+  useContext,
   useEffect,
   useRef,
-  createContext,
-  useContext,
+  useState,
 } from 'dust';
 
-import {
-  pageWrap,
-  pageTitle,
-  pageSub,
-  demoGrid,
-  demoCard,
-  cardLabel,
-  cardHeading,
-  rule,
-  hint,
-  swDisplay,
-  swBtnRow,
-  swBtn,
-  swBtnGreen,
-  swBtnRed,
-  swBtnGhost,
-  noteInputRow,
-  noteInputEl,
-  noteAddBtn,
-  noteListWrap,
-  noteItem,
-  noteDot,
-  noteDotDone,
-  noteTextEl,
-  noteDelBtn,
-  emptyMsg,
-  ctxInputEl,
-  ctxOutputEl,
-  ctxBadge,
-  refTextarea,
-  refMeta,
-  refBtnRow,
-  refBtn,
-  modeBtnRow,
-  modeBtn,
-  modeBtnActive,
-  cxPreviewEl,
-  cxBold,
-  cxItalic,
-  cxLarge,
-} from './styles';
+import s from './styles';
 
 interface Note {
   id: number;
@@ -57,19 +17,19 @@ interface Note {
 const [ctxName, setCtxName] = useState('Dust');
 const GreetCtx = createContext(ctxName);
 
-function GreetingDisplay() {
+const GreetingDisplay = (): JSX.Element => {
   const name = useContext(GreetCtx);
   return (
-    <div className={ctxOutputEl}>
+    <div className={s.context.output}>
       <span>
         👋 Hello, <strong>{name || 'Dust'}</strong>!
       </span>
-      <span className={ctxBadge}>useContext</span>
+      <span className={s.context.badge}>useContext</span>
     </div>
   );
-}
+};
 
-function Playground() {
+const Playground = (): JSX.Element => {
   const [running, setRunning] = useState(false);
   const [elapsed, setElapsed] = useState(0);
   const swToggleRef = useRef<HTMLButtonElement | null>(null);
@@ -77,30 +37,30 @@ function Playground() {
   useEffect(() => {
     if (!running()) return;
     const id = setInterval(() => setElapsed((e) => e + 10), 10);
-    return () => clearInterval(id);
+    return (): void => clearInterval(id);
   }, [running]);
 
   useEffect(() => {
     if (swToggleRef.current) {
       swToggleRef.current.className = cx(
-        swBtn,
-        running() ? swBtnRed : swBtnGreen,
+        s.stopwatch.btn,
+        running() ? s.stopwatch.red : s.stopwatch.green,
       );
     }
   }, [running]);
 
-  const fmt = (ms: number) => {
+  const fmt = (ms: number): string => {
     const m = String(Math.floor(ms / 60000)).padStart(2, '0');
-    const s = String(Math.floor((ms % 60000) / 1000)).padStart(2, '0');
+    const sec = String(Math.floor((ms % 60000) / 1000)).padStart(2, '0');
     const cs = String(Math.floor((ms % 1000) / 10)).padStart(2, '0');
-    return `${m}:${s}.${cs}`;
+    return `${m}:${sec}.${cs}`;
   };
 
   const [notes, setNotes] = useState<Note[]>([]);
   const [noteInputVal, setNoteInputVal] = useState('');
   const noteInputRef = useRef<HTMLInputElement | null>(null);
 
-  const addNote = () => {
+  const addNote = (): void => {
     const text = noteInputVal().trim();
     if (!text) return;
     setNotes((n) => [...n, { id: Date.now(), text }]);
@@ -114,24 +74,24 @@ function Playground() {
 
     useEffect(() => {
       if (dotRef.current) {
-        dotRef.current.className = cx(noteDot, done() && noteDotDone);
+        dotRef.current.className = cx(s.note.dot, done() && s.note.dotDone);
       }
     }, [done]);
 
     return (
-      <div className={noteItem}>
+      <div className={s.note.item}>
         <button
           ref={dotRef}
-          className={noteDot}
+          className={s.note.dot}
           onClick={() => setDone((v) => !v)}
         >
           {done() ? '✓' : ''}
         </button>
-        <span className={noteTextEl}>
+        <span className={s.note.text}>
           {done() ? <s>{note.text}</s> : note.text}
         </span>
         <button
-          className={noteDelBtn}
+          className={s.note.delBtn}
           onClick={() => setNotes((n) => n.filter((x) => x !== note))}
         >
           ✕
@@ -153,10 +113,10 @@ function Playground() {
   useEffect(() => {
     if (cxRef.current) {
       cxRef.current.className = cx(
-        cxPreviewEl,
-        mode() === 'bold' && cxBold,
-        mode() === 'italic' && cxItalic,
-        mode() === 'large' && cxLarge,
+        s.mode.preview,
+        mode() === 'bold' && s.mode.bold,
+        mode() === 'italic' && s.mode.italic,
+        mode() === 'large' && s.mode.large,
       );
     }
     const refs = [
@@ -168,30 +128,33 @@ function Playground() {
     const vals = ['default', 'bold', 'italic', 'large'];
     refs.forEach((r, i) => {
       if (r.current)
-        r.current.className = cx(modeBtn, mode() === vals[i] && modeBtnActive);
+        r.current.className = cx(
+          s.mode.btn,
+          mode() === vals[i] && s.mode.active,
+        );
     });
   }, [mode]);
 
   return (
-    <div className={pageWrap}>
-      <h1 className={pageTitle}>Playground</h1>
-      <p className={pageSub}>Interactive demos of every Dust primitive.</p>
+    <div className={s.page.wrap}>
+      <h1 className={s.page.title}>Playground</h1>
+      <p className={s.page.sub}>Interactive demos of every Dust primitive.</p>
 
-      <div className={demoGrid}>
-        <div className={demoCard}>
-          <p className={cardLabel}>useState · useEffect · cx</p>
-          <p className={cardHeading}>Stopwatch</p>
-          <div className={swDisplay}>{() => fmt(elapsed())}</div>
-          <div className={swBtnRow}>
+      <div className={s.card.grid}>
+        <div className={s.card.card}>
+          <p className={s.card.label}>useState · useEffect · cx</p>
+          <p className={s.card.heading}>Stopwatch</p>
+          <div className={s.stopwatch.display}>{() => fmt(elapsed())}</div>
+          <div className={s.stopwatch.btnRow}>
             <button
               ref={swToggleRef}
-              className={cx(swBtn, swBtnGreen)}
+              className={cx(s.stopwatch.btn, s.stopwatch.green)}
               onClick={() => setRunning((v) => !v)}
             >
               {running() ? '⏸ Pause' : '▶ Start'}
             </button>
             <button
-              className={cx(swBtn, swBtnGhost)}
+              className={cx(s.stopwatch.btn, s.stopwatch.ghost)}
               onClick={() => {
                 setRunning(false);
                 setElapsed(0);
@@ -200,19 +163,19 @@ function Playground() {
               ↺ Reset
             </button>
           </div>
-          <div className={rule} />
-          <p className={hint}>
+          <div className={s.card.rule} />
+          <p className={s.card.hint}>
             useEffect clears interval on cleanup. cx() swaps class via useRef.
           </p>
         </div>
 
-        <div className={demoCard}>
-          <p className={cardLabel}>ReactiveList · useState per item</p>
-          <p className={cardHeading}>Notes</p>
-          <div className={noteInputRow}>
+        <div className={s.card.card}>
+          <p className={s.card.label}>ReactiveList · useState per item</p>
+          <p className={s.card.heading}>Notes</p>
+          <div className={s.note.inputRow}>
             <input
               ref={noteInputRef}
-              className={noteInputEl}
+              className={s.note.input}
               type="text"
               placeholder="Add a note…"
               onInput={(e) =>
@@ -222,67 +185,67 @@ function Playground() {
                 if (e.key === 'Enter') addNote();
               }}
             />
-            <button className={noteAddBtn} onClick={addNote}>
+            <button className={s.note.addBtn} onClick={addNote}>
               Add
             </button>
           </div>
-          <div className={noteListWrap}>
+          <div className={s.note.listWrap}>
             {noteItems}
-            {!notes().length && <p className={emptyMsg}>No notes yet.</p>}
+            {!notes().length && <p className={s.note.empty}>No notes yet.</p>}
           </div>
-          <div className={rule} />
-          <p className={hint}>
+          <div className={s.card.rule} />
+          <p className={s.card.hint}>
             notes.map() → ReactiveList. Each item has its own useState.
           </p>
         </div>
 
-        <div className={demoCard}>
-          <p className={cardLabel}>createContext · useContext</p>
-          <p className={cardHeading}>Context</p>
+        <div className={s.card.card}>
+          <p className={s.card.label}>createContext · useContext</p>
+          <p className={s.card.heading}>Context</p>
           <GreetCtx.Provider value={ctxName}>
             <input
-              className={ctxInputEl}
+              className={s.context.input}
               type="text"
               placeholder="Enter a name…"
               onInput={(e) => setCtxName((e.target as HTMLInputElement).value)}
             />
             <GreetingDisplay />
           </GreetCtx.Provider>
-          <div className={rule} />
-          <p className={hint}>
+          <div className={s.card.rule} />
+          <p className={s.card.hint}>
             GreetingDisplay reads GreetCtx via useContext — no prop drilling.
           </p>
         </div>
 
-        <div className={demoCard}>
-          <p className={cardLabel}>useRef · cx · useEffect</p>
-          <p className={cardHeading}>Refs & Dynamic Classes</p>
+        <div className={s.card.card}>
+          <p className={s.card.label}>useRef · cx · useEffect</p>
+          <p className={s.card.heading}>Refs & Dynamic Classes</p>
           <textarea
             ref={textRef}
-            className={refTextarea}
+            className={s.ref.textarea}
             placeholder="Type something…"
             onInput={(e) =>
               setCharCount((e.target as HTMLTextAreaElement).value.length)
             }
           />
-          <p className={refMeta}>
+          <p className={s.ref.meta}>
             chars: <span>{charCount}</span>
           </p>
-          <div className={refBtnRow}>
+          <div className={s.ref.btnRow}>
             <button
-              className={refBtn}
+              className={s.ref.btn}
               onClick={() => textRef.current && textRef.current.focus()}
             >
               Focus
             </button>
             <button
-              className={refBtn}
+              className={s.ref.btn}
               onClick={() => textRef.current && textRef.current.select()}
             >
               Select all
             </button>
             <button
-              className={refBtn}
+              className={s.ref.btn}
               onClick={() => {
                 if (textRef.current) {
                   textRef.current.value = '';
@@ -293,47 +256,47 @@ function Playground() {
               Clear
             </button>
           </div>
-          <div className={rule} />
-          <p className={hint} style="margin-bottom:0.6rem">
+          <div className={s.card.rule} />
+          <p className={s.card.hint} style="margin-bottom:0.6rem">
             cx() joins truthy classes, applied via useEffect + useRef:
           </p>
-          <div className={modeBtnRow}>
+          <div className={s.mode.btnRow}>
             <button
               ref={modeBtnDefaultRef}
-              className={cx(modeBtn, modeBtnActive)}
+              className={cx(s.mode.btn, s.mode.active)}
               onClick={() => setMode('default')}
             >
               Default
             </button>
             <button
               ref={modeBtnBoldRef}
-              className={modeBtn}
+              className={s.mode.btn}
               onClick={() => setMode('bold')}
             >
               Bold
             </button>
             <button
               ref={modeBtnItalicRef}
-              className={modeBtn}
+              className={s.mode.btn}
               onClick={() => setMode('italic')}
             >
               Italic
             </button>
             <button
               ref={modeBtnLargeRef}
-              className={modeBtn}
+              className={s.mode.btn}
               onClick={() => setMode('large')}
             >
               Large
             </button>
           </div>
-          <div ref={cxRef} className={cxPreviewEl}>
+          <div ref={cxRef} className={s.mode.preview}>
             The quick brown fox jumps over the lazy dog.
           </div>
         </div>
       </div>
     </div>
   );
-}
+};
 
 export default Playground;
