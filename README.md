@@ -1,18 +1,35 @@
 # Dust
 
-A minimalistic reactive JavaScript library for building dynamic, state-driven component-based interfaces.
+**A minimalistic reactive UI library — React's API, no virtual DOM.**
+
+Dust gives you `useState`, `useEffect`, `useRef`, `createContext`, JSX, and routing — all the patterns you know — but without a virtual DOM or diffing engine. When state changes, only the exact DOM node that depends on it updates. No re-renders, no reconciliation, no overhead.
+
+## Why Dust?
+
+Most reactive frameworks re-render components on state change and reconcile a virtual DOM tree to figure out what to update. Dust skips that entirely.
+
+`useState` returns a **Getter** — a callable proxy that records which DOM nodes depend on it. When you update state, those nodes update directly. A component function runs once to build the initial DOM; it never runs again.
+
+```jsx
+const [count, setCount] = useState(0);
+
+// Each of these is a live, independently-updating DOM text node:
+<p>Total: {count}</p>
+<p>Double: {count() * 2}</p>
+```
+
+The transpiler automatically wraps bare JSX expressions in arrow functions, so writing `{count}` works out of the box — no `.value`, no `$`, no magic syntax to learn.
 
 ## Features
 
-- Reactive `useState` with Proxy-based nested reactivity
-- `useEffect` for side-effect subscriptions
-- `useRef` for mutable DOM references
-- `createContext` / `useContext` for prop-drilling-free state sharing
-- `ReactiveList` — identity-based list reconciliation via `items.map()`
-- `css` tagged template literal and `cx` utility for zero-cost CSS-in-JS
-- JSX support via a custom Babel transpiler (`Dust.createElement`)
-- File-system routing (`DirectoryRouter`) like Next.js and declarative JSX routing (`BrowserRouter`) like React Router DOM
-- Dev server with HMR, production bundler, and preview server — all via the `dust` CLI
+- **Surgical DOM updates** — state change → one node updates, nothing else touches the DOM
+- **Proxy-based nested reactivity** — `user.name()` is reactive automatically, no selectors needed
+- **Familiar API** — `useState`, `useEffect`, `useRef`, `createContext` / `useContext`
+- **ReactiveList** — identity-based list reconciliation via `.map()`, each item gets its own local state
+- **`css` tagged template + `cx` utility** — zero-cost scoped styles, no build plugin needed
+- **JSX auto-wiring** — bare identifiers in JSX are wrapped by the transpiler; write `{count}`, not `{count()}`
+- **File-system routing** (`DirectoryRouter`) and declarative JSX routing (`BrowserRouter`)
+- **Batteries-included CLI** — dev server with HMR, production bundler, preview server
 
 ## Requirements
 
@@ -59,23 +76,19 @@ const App = () => {
 createRoot(document.getElementById('root')).render(<App />);
 ```
 
-## CLI
-
 ```sh
-dust dev      # start dev server with HMR (default port 3000)
+dust dev      # start dev server with HMR at http://localhost:3000
 dust build    # bundle to dist/
 dust preview  # serve dist/
 ```
 
 ## How reactivity works
 
-`useState` returns a **Getter** — a callable object that doubles as a live subscription handle. Calling it (`count()`) reads the current value and, when called inside a reactive context, registers the caller as a dependent that re-runs whenever the value changes.
-
-No virtual DOM, no diffing. Each reactive expression owns one real DOM node. When state changes, only that node is updated in place.
+`useState` returns a **Getter** — a callable Proxy that doubles as a subscription handle. Calling it (`count()`) reads the current value. When called inside a reactive context (a DOM text node, a reactive attribute, a `useEffect`), Dust records the dependency. On the next `setCount`, only the DOM nodes that read `count` are updated — in place, with no diffing.
 
 ### JSX auto-wiring
 
-Writing `{count()}` by hand in every JSX expression would be tedious, so the Babel transpiler handles it automatically. A bare identifier or zero-argument call in JSX children is wrapped in an arrow function before `Dust.createElement` sees it:
+The Babel transpiler wraps bare identifiers and zero-argument calls in JSX children in an arrow function before `Dust.createElement` sees them:
 
 ```jsx
 // What you write:
@@ -85,12 +98,12 @@ Writing `{count()}` by hand in every JSX expression would be tedious, so the Bab
 createElement('p', null, 'Count: ', () => count)
 ```
 
-The runtime detects the function child, calls it with dependency tracking enabled, and subscribes the resulting DOM text node to `count` directly. When `setCount` fires, only that text node updates — the component function is never called again.
+The runtime detects the function child, calls it with tracking enabled, and subscribes the resulting text node to `count` directly. When `setCount` fires, only that text node updates — the component function is never called again.
 
-This is why:
-
-- In **JSX**, write `{count}` or `{count()}` — both work, the transpiler wraps them
-- Outside JSX (event handlers, `useEffect`, plain JS), call `count()` explicitly to read the value
+| Context | How to read state |
+|---|---|
+| JSX children / attributes | `{count}` or `{count()}` — both work |
+| `useEffect`, event handlers, plain JS | `count()` — call explicitly |
 
 ```jsx
 // JSX — transpiler handles it
@@ -109,19 +122,18 @@ useEffect(() => {
 ```jsx
 const [count, setCount] = useState(0);
 
-// Read value (also tracks as dependency inside JSX)
-count()
+count()              // read value (tracks as dependency inside JSX / useEffect)
+setCount(1)          // set directly
+setCount((n) => n + 1) // set via updater
 
-// Update
-setCount(1);
-setCount((n) => n + 1);
-
-// Nested object state — properties become reactive Getters automatically
-const [user, setUser] = useState({ name: 'Alice' });
-user.name() // reactive Getter
+// Nested objects — each property becomes a reactive Getter automatically
+const [user, setUser] = useState({ name: 'Alice', age: 30 });
+<p>{user.name}</p>   // updates only when user.name changes
 ```
 
 ### useEffect
+
+Runs the callback when any listed dependency changes. The optional return value is a cleanup function called before the next run or on unmount.
 
 ```jsx
 const [running, setRunning] = useState(false);
@@ -129,7 +141,7 @@ const [running, setRunning] = useState(false);
 useEffect(() => {
   if (!running()) return;
   const id = setInterval(() => tick(), 1000);
-  return () => clearInterval(id); // cleanup on next run or unmount
+  return () => clearInterval(id);
 }, [running]);
 ```
 
@@ -137,7 +149,6 @@ useEffect(() => {
 
 ```jsx
 const inputRef = useRef(null);
-
 <input ref={inputRef} />
 
 // Later:
@@ -163,9 +174,9 @@ function Child() {
 }
 ```
 
-### ReactiveList — reactive lists via `items.map()`
+### ReactiveList
 
-Calling `.map()` on a state Getter returns a `ReactiveList` that reconciles DOM nodes by item identity when the list changes. Each item's render function can create its own local state.
+Calling `.map()` on a state Getter returns a `ReactiveList`. DOM nodes are reconciled by item identity when the array changes — nodes for unchanged items are reused, not recreated. Each item's render function can create its own independent local state.
 
 ```jsx
 const [items, setItems] = useState([{ id: 1, text: 'Buy milk' }]);
@@ -179,13 +190,12 @@ const list = items.map((item) => {
   );
 });
 
-// Use in JSX — nodes are reused when item references stay the same
 <ul>{list}</ul>
 ```
 
 ### css / cx
 
-`css` injects scoped styles into a single `<style>` tag and returns a stable class name. `cx` joins truthy class names.
+`css` injects scoped styles into a single `<style>` tag and returns a stable class name. `cx` joins class names, skipping falsy values — useful for conditional styling without string interpolation.
 
 ```jsx
 import Dust, { css, cx } from 'dust';
@@ -209,7 +219,7 @@ const Button = ({ primary, label }) => (
 
 ### DirectoryRouter (file-system based)
 
-Place pages under `src/pages/`. The dev server injects imports automatically.
+Place pages under `src/pages/`. The dev server discovers and injects them automatically — no imports to write.
 
 ```
 src/pages/index.jsx       → /
@@ -222,7 +232,7 @@ import Dust, { createRoot, DirectoryRouter } from 'dust';
 createRoot(document.getElementById('root')).render(<DirectoryRouter />);
 ```
 
-### BrowserRouter (JSX based)
+### BrowserRouter (declarative)
 
 ```jsx
 import Dust, { createRoot, BrowserRouter, Route } from 'dust';
@@ -237,15 +247,26 @@ createRoot(document.getElementById('root')).render(
 );
 ```
 
-## Contact me
+Both routers use the History API — navigation is SPA-style with no full-page reloads. Use `useParams()` to read dynamic path segments.
 
-For support, remarks and requests, please mail me at [pm_engel@icloud.com](mailto:pm_engel@icloud.com).
+## Examples
+
+Two full example apps live in `examples/`:
+
+- **`nextjs-like-routing`** — `DirectoryRouter` with file-system pages
+- **`reactrouter-like-routing`** — `BrowserRouter` with declarative routes
+
+Each example includes a Playground page that demonstrates `useState`, `useEffect`, `useRef`, `createContext` / `useContext`, `ReactiveList`, `css`, and `cx` side-by-side.
+
+## Contact
+
+For support, remarks, and requests: [pm_engel@icloud.com](mailto:pm_engel@icloud.com)
 
 ## License
 
 Copyright (c) 2026 Paul Engel, released under the MIT License
 
-http://github.com/archan937 – [pm_engel@icloud.com](mailto:pm_engel@icloud.com)
+http://github.com/archan937 — [pm_engel@icloud.com](mailto:pm_engel@icloud.com)
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
