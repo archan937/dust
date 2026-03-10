@@ -1,0 +1,15 @@
+{
+  "name": "dust-benchmark",
+  "version": "1.0.0",
+  "license": "MIT",
+  "scripts": {
+    "dev": "dust dev"
+  },
+  "dependencies": {
+    "dust": "link:dust"
+  },
+  "devDependencies": {
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3"
+  }
+}
