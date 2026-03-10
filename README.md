@@ -1,6 +1,21 @@
 # Dust
 
-**A minimalistic reactive UI library — React's API, no virtual DOM.**
+```
+  ·    *  ·     ✦   ·    ·  *   ·
+·   ✧     ·  ·    *    ✦     ·
+
+  ██████╗ ██╗   ██╗███████╗████████╗
+  ██╔══██╗██║   ██║██╔════╝╚══██╔══╝
+  ██║  ██║██║   ██║███████╗   ██║
+  ██║  ██║██║   ██║╚════██║   ██║
+  ██████╔╝╚██████╔╝███████║   ██║
+  ╚═════╝  ╚═════╝ ╚══════╝   ╚═╝
+
+    React's API. Zero re-renders.
+
+·   ✧  ·     *   ✦  ·    ·
+  ·    ·   *    ✧     ·   ✦   ·
+```
 
 Dust gives you `useState`, `useEffect`, `useRef`, `createContext`, JSX, and routing — all the patterns you know — but without a virtual DOM or diffing engine. When state changes, only the exact DOM node that depends on it updates. No re-renders, no reconciliation, no overhead.
 
@@ -92,22 +107,22 @@ The Babel transpiler wraps bare identifiers and zero-argument calls in JSX child
 
 ```jsx
 // What you write:
-<p>Count: {count}</p>
+<p>Count: {count}</p>;
 
 // What the transpiler emits:
-createElement('p', null, 'Count: ', () => count)
+createElement('p', null, 'Count: ', () => count);
 ```
 
 The runtime detects the function child, calls it with tracking enabled, and subscribes the resulting text node to `count` directly. When `setCount` fires, only that text node updates — the component function is never called again.
 
-| Context | How to read state |
-|---|---|
-| JSX children / attributes | `{count}` or `{count()}` — both work |
-| `useEffect`, event handlers, plain JS | `count()` — call explicitly |
+| Context                               | How to read state                    |
+| ------------------------------------- | ------------------------------------ |
+| JSX children / attributes             | `{count}` or `{count()}` — both work |
+| `useEffect`, event handlers, plain JS | `count()` — call explicitly          |
 
 ```jsx
 // JSX — transpiler handles it
-<p>{count}</p>
+<p>{count}</p>;
 
 // Outside JSX — call explicitly
 useEffect(() => {
@@ -122,13 +137,13 @@ useEffect(() => {
 ```jsx
 const [count, setCount] = useState(0);
 
-count()              // read value (tracks as dependency inside JSX / useEffect)
-setCount(1)          // set directly
-setCount((n) => n + 1) // set via updater
+count(); // read value (tracks as dependency inside JSX / useEffect)
+setCount(1); // set directly
+setCount((n) => n + 1); // set via updater
 
 // Nested objects — each property becomes a reactive Getter automatically
 const [user, setUser] = useState({ name: 'Alice', age: 30 });
-<p>{user.name}</p>   // updates only when user.name changes
+<p>{user.name}</p>; // updates only when user.name changes
 ```
 
 ### useEffect
@@ -149,7 +164,7 @@ useEffect(() => {
 
 ```jsx
 const inputRef = useRef(null);
-<input ref={inputRef} />
+<input ref={inputRef} />;
 
 // Later:
 inputRef.current.focus();
@@ -190,7 +205,7 @@ const list = items.map((item) => {
   );
 });
 
-<ul>{list}</ul>
+<ul>{list}</ul>;
 ```
 
 ### css / cx
