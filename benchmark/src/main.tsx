@@ -18,7 +18,7 @@ const s = {
   page: css`
     max-width: 900px;
     margin: 0 auto;
-    padding: 3rem 1.5rem 5rem;
+    padding: 5rem 1.5rem 3rem;
   `,
   header: css`
     margin-bottom: 2rem;
@@ -86,6 +86,7 @@ const s = {
     border: 1px solid #27272a;
     border-radius: 10px;
     overflow: hidden;
+    scroll-margin-top: 5rem;
   `,
   cardTop: css`
     padding: 1rem 1.25rem 0.85rem;
@@ -239,14 +240,14 @@ const s = {
   `,
   footer: css`
     position: fixed;
-    bottom: 0;
+    top: 0;
     left: 0;
     right: 0;
     z-index: 100;
     background: rgba(9, 9, 11, 0.88);
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
-    border-top: 1px solid #27272a;
+    border-bottom: 1px solid #27272a;
   `,
   footerInner: css`
     max-width: 900px;
@@ -541,7 +542,19 @@ const StepPill = ({ p, i }: { p: TestProgress; i: number }): JSX.Element => {
   const isDone = p.state === 'done';
   const isRunning = p.state === 'running';
   return (
-    <div className={s.footerStep}>
+    <div
+      className={s.footerStep}
+      style="cursor:pointer"
+      onClick={() => {
+        const el = document.querySelectorAll(`.${s.card}`)[i] as
+          | HTMLElement
+          | undefined;
+        if (el) {
+          const top = el.getBoundingClientRect().top + window.scrollY - 80;
+          window.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
+        }
+      }}
+    >
       <div
         className={cx(
           s.stepDot,
@@ -620,6 +633,19 @@ const sandboxEl = document.createElement('div');
 sandboxEl.className = s.hidden;
 document.body.appendChild(sandboxEl);
 
+// ── Benchmark mount helpers ─────────────────────────────────────────────────
+
+const runDustBenchmark = (Component: () => JSX.Element): HTMLElement => {
+  const el = document.createElement('div');
+  sandboxEl.appendChild(el);
+  createRoot(el).render(<Component />);
+  return el;
+};
+
+const teardownDust = (el: HTMLElement): void => {
+  sandboxEl.removeChild(el);
+};
+
 // ── Run ────────────────────────────────────────────────────────────────────
 
 const run = async (): Promise<void> => {
@@ -642,39 +668,45 @@ const run = async (): Promise<void> => {
 
   setReactVersion(React.version);
 
+  const runReactBenchmark = (
+    Component: React.ComponentType,
+  ): { root: ReturnType<typeof reactCreateRoot>; el: HTMLElement } => {
+    const el = document.createElement('div');
+    sandboxEl.appendChild(el);
+    const root = reactCreateRoot(el);
+    flushSync(() => root.render(React.createElement(Component)));
+    return { root, el };
+  };
+
+  const teardownReact = ({
+    root,
+    el,
+  }: {
+    root: ReturnType<typeof reactCreateRoot>;
+    el: HTMLElement;
+  }): void => {
+    root.unmount();
+    sandboxEl.removeChild(el);
+  };
+
   // ── Test 1: Counter — 50,000 rapid increments ───────────────────────────
 
-  // Dust: state inside component, just like React.
-  // Component runs once. Text node subscribes directly to the getter.
-  // Each setState → 1 text node mutation.
-  //
-  // React: component re-runs on every setState.
-  // Each setState → component re-runs, new vdom built, diffed, committed.
-
   let dustSetCounter: ((n: (p: number) => number) => void) | null = null;
-  const DustCounter = (): JSX.Element => {
+  const DustCounterBenchmark = (): JSX.Element => {
     const [count, setCount] = useState(0);
     dustSetCounter = setCount;
-    return <span>{count}</span>;
+    return Dust.createElement('span', null, count) as JSX.Element;
   };
-  const dustCounterEl = document.createElement('div');
-  sandboxEl.appendChild(dustCounterEl);
-  createRoot(dustCounterEl).render(<DustCounter />);
 
   let reactSetCounter: ((n: (p: number) => number) => void) | null = null;
-  const ReactCounter = () => {
+  const ReactCounterBenchmark = () => {
     const [count, setCount] = React.useState(0);
     reactSetCounter = setCount;
     return React.createElement('span', null, count);
   };
-  const reactCounterEl = document.createElement('div');
-  sandboxEl.appendChild(reactCounterEl);
-  const reactCounterRoot = reactCreateRoot(reactCounterEl);
-  flushSync(() =>
-    reactCounterRoot.render(
-      React.createElement(ReactCounter as React.ComponentType),
-    ),
-  );
+
+  const dustCounterEl = runDustBenchmark(DustCounterBenchmark);
+  const reactCounter = runReactBenchmark(ReactCounterBenchmark);
 
   const COUNTER_N = 50_000;
   const dustCounterRuns: number[] = [];
@@ -690,9 +722,8 @@ const run = async (): Promise<void> => {
     );
   }
 
-  reactCounterRoot.unmount();
-  sandboxEl.removeChild(dustCounterEl);
-  sandboxEl.removeChild(reactCounterEl);
+  teardownDust(dustCounterEl);
+  teardownReact(reactCounter);
   setTestProgress(0, {
     state: 'done',
     speedup: speedup(avg(reactCounterRuns), avg(dustCounterRuns)),
@@ -708,27 +739,23 @@ const run = async (): Promise<void> => {
       dustRuns: dustCounterRuns,
       reactRuns: reactCounterRuns,
       dustCode: `\
-// State at module scope — accessible anywhere.
-const [count, setCount] = useState(0);
+const DustCounterBenchmark = (): JSX.Element => {
+  const [count, setCount] = useState(0);
+  dustSetCounter = setCount;
+  return Dust.createElement('span', null, count);
+};
 
-const Counter = () => <span>{count}</span>;
-// {count} → transpiled to () => count
-// text node subscribes to count getter
-
-setCount(n => n + 1);
+dustSetCounter(n => n + 1);
 // → 1 text node mutation
 // → component never re-runs`,
       reactCode: `\
-// Setter stored during render for external access.
-let setCount;
-
-const Counter = () => {
-  const [count, set] = useState(0);
-  setCount = set;
-  return <span>{count}</span>;
+const ReactCounterBenchmark = () => {
+  const [count, setCount] = React.useState(0);
+  reactSetCounter = setCount;
+  return React.createElement('span', null, count);
 };
 
-setCount(n => n + 1);
+flushSync(() => reactSetCounter(n => n + 1));
 // → component re-runs
 // → new vdom built, diffed
 // → DOM commit`,
@@ -737,33 +764,24 @@ setCount(n => n + 1);
 
   // ── Test 2: Prop drilling — 30 levels, 10,000 updates ───────────────────
 
-  // Dust: all 30 components run once at mount. The getter is passed
-  // by reference — no copies. Only the leaf text node subscribes.
-  //
-  // React: every intermediate component re-renders because its prop
-  // changed. 31 component calls per update × 10k = 310,000 total.
-
   type CP = { count: Getter<number> };
 
-  const DustLeaf = ({ count }: CP): JSX.Element => <span>{count}</span>;
+  const DustLeaf = ({ count }: CP): JSX.Element =>
+    Dust.createElement('span', null, count) as JSX.Element;
   let DustDrillChain: (props: CP) => JSX.Element = DustLeaf;
   for (let i = 0; i < 29; i++) {
     const Inner = DustDrillChain;
     DustDrillChain = ({ count }: CP) =>
-      createElement(Inner, { count }) as JSX.Element;
+      Dust.createElement(Inner, { count }) as JSX.Element;
   }
 
   let dustSetDrill: ((n: (p: number) => number) => void) | null = null;
-  const DustDrillRoot = (): JSX.Element => {
+  const DustDrillBenchmark = (): JSX.Element => {
     const [count, setCount] = useState(0);
     dustSetDrill = setCount;
-    return createElement(DustDrillChain, { count }) as JSX.Element;
+    return Dust.createElement(DustDrillChain, { count }) as JSX.Element;
   };
-  const dustDrillEl = document.createElement('div');
-  sandboxEl.appendChild(dustDrillEl);
-  createRoot(dustDrillEl).render(<DustDrillRoot />);
 
-  let reactSetDrill: ((n: (p: number) => number) => void) | null = null;
   const ReactLeaf = ({ count }: { count: number }) =>
     React.createElement('span', null, count);
   let ReactDrillChain: React.ComponentType<{ count: number }> = ReactLeaf;
@@ -772,20 +790,17 @@ setCount(n => n + 1);
     ReactDrillChain = ({ count }: { count: number }): React.ReactElement =>
       React.createElement(Inner, { count });
   }
-  const OuterChain = ReactDrillChain;
-  const ReactDrillRoot = () => {
+  const ReactDrillTop = ReactDrillChain;
+
+  let reactSetDrill: ((n: (p: number) => number) => void) | null = null;
+  const ReactDrillBenchmark = () => {
     const [count, setCount] = React.useState(0);
     reactSetDrill = setCount;
-    return React.createElement(OuterChain, { count });
+    return React.createElement(ReactDrillTop, { count });
   };
-  const reactDrillEl = document.createElement('div');
-  sandboxEl.appendChild(reactDrillEl);
-  const reactDrillRoot = reactCreateRoot(reactDrillEl);
-  flushSync(() =>
-    reactDrillRoot.render(
-      React.createElement(ReactDrillRoot as React.ComponentType),
-    ),
-  );
+
+  const dustDrillEl = runDustBenchmark(DustDrillBenchmark);
+  const reactDrill = runReactBenchmark(ReactDrillBenchmark);
 
   const DRILL_N = 10_000;
   const dustDrillRuns: number[] = [];
@@ -801,9 +816,8 @@ setCount(n => n + 1);
     );
   }
 
-  reactDrillRoot.unmount();
-  sandboxEl.removeChild(dustDrillEl);
-  sandboxEl.removeChild(reactDrillEl);
+  teardownDust(dustDrillEl);
+  teardownReact(reactDrill);
   setTestProgress(1, {
     state: 'done',
     speedup: speedup(avg(reactDrillRuns), avg(dustDrillRuns)),
@@ -819,69 +833,68 @@ setCount(n => n + 1);
       dustRuns: dustDrillRuns,
       reactRuns: reactDrillRuns,
       dustCode: `\
-// State at module scope — accessible anywhere.
-const [count, setCount] = useState(0);
+const DustLeaf = ({ count }) =>
+  Dust.createElement('span', null, count);
+let DustDrillChain = DustLeaf;
+for (let i = 0; i < 29; i++) {
+  const Inner = DustDrillChain;
+  DustDrillChain = ({ count }) =>
+    Dust.createElement(Inner, { count });
+}
+const DustDrillBenchmark = (): JSX.Element => {
+  const [count, setCount] = useState(0);
+  dustSetDrill = setCount;
+  return Dust.createElement(DustDrillChain, { count });
+};
 
-const Root   = () => <Level1 count={count} />;
-const Level1 = ({ count }) => <Level2 count={count} />;
-// ...
-const Level30 = ({ count }) => <span>{count}</span>;
-// All 30 run once. Only the leaf text node subscribes.
-
-setCount(n => n + 1);
+dustSetDrill(n => n + 1);
 // → 0 component re-runs
 // → 1 text node mutation`,
       reactCode: `\
-// Setter stored during render for external access.
-let setCount;
-
-const Root = () => {
-  const [count, set] = useState(0);
-  setCount = set;
-  return <Level1 count={count} />;
+const ReactLeaf = ({ count }) =>
+  React.createElement('span', null, count);
+let ReactDrillChain = ReactLeaf;
+for (let i = 0; i < 29; i++) {
+  const Inner = ReactDrillChain;
+  ReactDrillChain = ({ count }) =>
+    React.createElement(Inner, { count });
+}
+const ReactDrillBenchmark = () => {
+  const [count, setCount] = React.useState(0);
+  reactSetDrill = setCount;
+  return React.createElement(ReactDrillTop, { count });
 };
-const Level1  = ({ count }) => <Level2  count={count} />;
-// ...
-const Level30 = ({ count }) => <span>{count}</span>;
 
-setCount(n => n + 1);
+flushSync(() => reactSetDrill(n => n + 1));
 // → 31 component calls per update
-// → 310,000 total for 10k updates
-// (fix: wrap each level in React.memo)`,
+// → 310,000 total for 10k updates`,
     },
   ]);
 
   // ── Test 3: Wide tree — 200 child components, 5,000 updates ─────────────
 
-  // Dust: each child receives the getter and subscribes its own text node.
-  // Update → 200 direct text node mutations, 0 component re-runs.
-  //
-  // React: root + 200 children all re-render.
-  // 201 component calls per update × 5k = 1,005,000 total.
-
   type WP = { count: Getter<number> };
-  const DustWideChild = ({ count }: WP): JSX.Element => <span>{count}</span>;
+  const DustWideChild = ({ count }: WP): JSX.Element =>
+    Dust.createElement('span', null, count) as JSX.Element;
 
   let dustSetWide: ((n: (p: number) => number) => void) | null = null;
-  const DustWideRoot = (): JSX.Element => {
+  const DustWideBenchmark = (): JSX.Element => {
     const [count, setCount] = useState(0);
     dustSetWide = setCount;
-    return createElement(
+    return Dust.createElement(
       'div',
       null,
       ...Array.from({ length: 200 }, () =>
-        createElement(DustWideChild, { count }),
+        Dust.createElement(DustWideChild, { count }),
       ),
     ) as JSX.Element;
   };
-  const dustWideEl = document.createElement('div');
-  sandboxEl.appendChild(dustWideEl);
-  createRoot(dustWideEl).render(<DustWideRoot />);
 
-  let reactSetWide: ((n: (p: number) => number) => void) | null = null;
   const ReactWideChild = ({ count }: { count: number }) =>
     React.createElement('span', null, count);
-  const ReactWideRoot = () => {
+
+  let reactSetWide: ((n: (p: number) => number) => void) | null = null;
+  const ReactWideBenchmark = () => {
     const [count, setCount] = React.useState(0);
     reactSetWide = setCount;
     return React.createElement(
@@ -892,14 +905,9 @@ setCount(n => n + 1);
       ),
     );
   };
-  const reactWideEl = document.createElement('div');
-  sandboxEl.appendChild(reactWideEl);
-  const reactWideRoot = reactCreateRoot(reactWideEl);
-  flushSync(() =>
-    reactWideRoot.render(
-      React.createElement(ReactWideRoot as React.ComponentType),
-    ),
-  );
+
+  const dustWideEl = runDustBenchmark(DustWideBenchmark);
+  const reactWide = runReactBenchmark(ReactWideBenchmark);
 
   const WIDE_N = 5_000;
   const dustWideRuns: number[] = [];
@@ -915,9 +923,8 @@ setCount(n => n + 1);
     );
   }
 
-  reactWideRoot.unmount();
-  sandboxEl.removeChild(dustWideEl);
-  sandboxEl.removeChild(reactWideEl);
+  teardownDust(dustWideEl);
+  teardownReact(reactWide);
   setTestProgress(2, {
     state: 'done',
     speedup: speedup(avg(reactWideRuns), avg(dustWideRuns)),
@@ -933,97 +940,73 @@ setCount(n => n + 1);
       dustRuns: dustWideRuns,
       reactRuns: reactWideRuns,
       dustCode: `\
-// State at module scope — accessible anywhere.
-const [count, setCount] = useState(0);
+const DustWideChild = ({ count }) =>
+  Dust.createElement('span', null, count);
 
-const Child = ({ count }) => <span>{count}</span>;
-const Root  = () => (
-  <div>
-    {Array.from({ length: 200 }, () =>
-      <Child count={count} />  // getter, not value
-    )}
-  </div>
-);
-
-setCount(n => n + 1);
-// → 0 component re-runs
-// → 200 text node mutations`,
-      reactCode: `\
-// Setter stored during render for external access.
-let setCount;
-
-const Child = ({ count }) => <span>{count}</span>;
-const Root  = () => {
-  const [count, set] = useState(0);
-  setCount = set;
-  return (
-    <div>
-      {Array.from({ length: 200 }, (_, i) =>
-        <Child key={i} count={count} />  // value, not getter
-      )}
-    </div>
+const DustWideBenchmark = (): JSX.Element => {
+  const [count, setCount] = useState(0);
+  dustSetWide = setCount;
+  return Dust.createElement('div', null,
+    ...Array.from({ length: 200 }, () =>
+      Dust.createElement(DustWideChild, { count }),
+    ),
   );
 };
 
-setCount(n => n + 1);
+dustSetWide(n => n + 1);
+// → 0 component re-runs
+// → 200 text node mutations`,
+      reactCode: `\
+const ReactWideChild = ({ count }) =>
+  React.createElement('span', null, count);
+
+const ReactWideBenchmark = () => {
+  const [count, setCount] = React.useState(0);
+  reactSetWide = setCount;
+  return React.createElement('div', null,
+    ...Array.from({ length: 200 }, (_, i) =>
+      React.createElement(ReactWideChild, { key: i, count }),
+    ),
+  );
+};
+
+flushSync(() => reactSetWide(n => n + 1));
 // → 201 component calls per update
-// → 1,005,000 total for 5k updates
-// (fix: wrap Child in React.memo)`,
+// → 1,005,000 total for 5k updates`,
     },
   ]);
 
   // ── Test 4: 10,000 items with independent state, targeted update × 1,000 ──
 
-  // Both sides use the same structure: 10,000 independently-stateful items,
-  // update one at index 5,000.
-  //
-  // Dust: 10k useState pairs inside the root component. Each getter is wired
-  // directly to its <span> text node. Update → 1 text node mutation.
-  //
-  // React: 10k individual <Item> components, each with its own useState.
-  // The setter is stored in an array for external access. Update → React
-  // re-renders only Item[5000], builds its vdom, diffs, commits.
-  // (Using a single array state would be worse — this is the fair approach.)
-
   let dustFatPairs: ReturnType<typeof useState<number>>[] = [];
-  const DustFatRoot = (): JSX.Element => {
+  const DustTargetedUpdateBenchmark = (): JSX.Element => {
     const pairs = Array.from({ length: 10_000 }, (_, i) => useState(i));
     dustFatPairs = pairs;
-    return createElement(
+    return Dust.createElement(
       'div',
       null,
-      ...pairs.map(([getter]) => createElement('span', null, getter)),
+      ...pairs.map(([getter]) => Dust.createElement('span', null, getter)),
     ) as JSX.Element;
   };
-  const dustFatEl = document.createElement('div');
-  sandboxEl.appendChild(dustFatEl);
-  createRoot(dustFatEl).render(<DustFatRoot />);
 
-  // React: individual item components — each has its own useState.
-  // Updating one re-renders only that component (no array spreading).
   const reactFatSetters: Array<(fn: (n: number) => number) => void> =
     Array(10_000).fill(null);
-  const ReactItem = ({ index, init }: { index: number; init: number }) => {
+  const ReactFatItem = ({ index, init }: { index: number; init: number }) => {
     const [count, setCount] = React.useState(init);
     reactFatSetters[index] = setCount;
     return React.createElement('span', null, count);
   };
-  const ReactFatRoot = () =>
+  const ReactTargetedUpdateBenchmark = () =>
     React.createElement(
       'div',
       null,
       ...Array.from({ length: 10_000 }, (_, i) =>
-        React.createElement(ReactItem, { key: i, index: i, init: i }),
+        React.createElement(ReactFatItem, { key: i, index: i, init: i }),
       ),
     );
-  const reactFatEl = document.createElement('div');
-  sandboxEl.appendChild(reactFatEl);
-  const reactFatRoot = reactCreateRoot(reactFatEl);
-  flushSync(() =>
-    reactFatRoot.render(
-      React.createElement(ReactFatRoot as React.ComponentType),
-    ),
-  );
+
+  const dustFatEl = runDustBenchmark(DustTargetedUpdateBenchmark);
+  const reactFat = runReactBenchmark(ReactTargetedUpdateBenchmark);
 
   const FAT_N = 1_000;
   const dustFatRuns: number[] = [];
@@ -1042,9 +1025,8 @@ setCount(n => n + 1);
     );
   }
 
-  reactFatRoot.unmount();
-  sandboxEl.removeChild(dustFatEl);
-  sandboxEl.removeChild(reactFatEl);
+  teardownDust(dustFatEl);
+  teardownReact(reactFat);
   setTestProgress(3, {
     state: 'done',
     speedup: speedup(avg(reactFatRuns), avg(dustFatRuns)),
@@ -1055,43 +1037,48 @@ setCount(n => n + 1);
     {
       name: 'Targeted update — 10k items, update one',
       description:
-        'Both sides use 10k independently-stateful items. React uses individual item components (the fair approach) — only Item[5000] re-renders. Dust updates one text node directly with no component re-run.',
+        'Both sides use 10k independently-stateful items. React uses individual item components (the fair approach) — only ReactFatItem[5000] re-renders. Dust updates one text node directly with no component re-run.',
       iterations: FAT_N,
       dustRuns: dustFatRuns,
       reactRuns: reactFatRuns,
       dustCode: `\
-// State lives at module scope — accessible anywhere.
-const pairs = Array.from({ length: 10_000 }, (_, i) =>
-  useState(i)
-);
+let dustFatPairs = [];
+const DustTargetedUpdateBenchmark = (): JSX.Element => {
+  const pairs = Array.from({ length: 10_000 }, (_, i) => useState(i));
+  dustFatPairs = pairs;
+  return Dust.createElement(
+    'div',
+    null,
+    ...pairs.map(([getter]) => Dust.createElement('span', null, getter)),
+  );
+};
 
-const App = () => (
-  <div>{pairs.map(([g]) => <span>{g}</span>)}</div>
-);
-
-pairs[5_000][1](n => n + 1);
+dustFatPairs[5_000][1](n => n + 1);
 // → 1 text node mutation
 // → 0 component re-runs`,
       reactCode: `\
-// 10k individual item components, each with
-// its own useState — the idiomatic approach.
-const Item = ({ index, init }) => {
-  const [count, setCount] = useState(init);
-  setters[index] = setCount;  // store for external access
-  return <span>{count}</span>;
+const reactFatSetters = Array(10_000).fill(null);
+const ReactFatItem = ({ index, init }) => {
+  const [count, setCount] = React.useState(init);
+  reactFatSetters[index] = setCount;
+  return React.createElement('span', null, count);
 };
+const ReactTargetedUpdateBenchmark = () =>
+  React.createElement(
+    'div',
+    null,
+    ...Array.from({ length: 10_000 }, (_, i) =>
+      React.createElement(ReactFatItem, { key: i, index: i, init: i }),
+    ),
+  );
 
-setters[5_000](n => n + 1);
-// → only Item[5000] re-renders
-// → vdom built, diffed, committed
+flushSync(() => reactFatSetters[5_000](n => n + 1));
+// → only ReactFatItem[5000] re-renders
 // → 9,999 components untouched`,
     },
   ]);
 
   // ── Test 5: Initial render — 5,000 items ────────────────────────────────
-
-  // Cold mount of 5,000 list items. Included for honesty —
-  // React's vdom commit path is heavily optimised for this.
 
   const RENDER_N = 100;
   const dustRenderRuns: number[] = [];
@@ -1110,7 +1097,7 @@ setters[5_000](n => n + 1);
             'ul',
             null,
             ...Array.from({ length: 5_000 }, (_, i) =>
-              createElement('li', null, String(i)),
+              createElement('li', null, i),
             ),
           ) as Node,
         );
@@ -1154,27 +1141,31 @@ setters[5_000](n => n + 1);
       dustRuns: dustRenderRuns,
       reactRuns: reactRenderRuns,
       dustCode: `\
-// Direct DOM construction, no vdom layer.
-const root = createRoot(el);
-root.render(
-  <ul>
-    {Array.from({ length: 5_000 }, (_, i) =>
-      <li>{String(i)}</li>
-    )}
-  </ul>
-);`,
+const el = document.createElement('div');
+sandboxEl.appendChild(el);
+createRoot(el).render(
+  createElement('ul', null,
+    ...Array.from({ length: 5_000 }, (_, i) =>
+      createElement('li', null, i),
+    ),
+  ),
+);
+sandboxEl.removeChild(el);`,
       reactCode: `\
-// vdom construction + batch commit.
-// React's scheduler is heavily optimised
-// for this pattern.
-const root = createRoot(el);
-root.render(
-  <ul>
-    {Array.from({ length: 5_000 }, (_, i) =>
-      <li key={i}>{i}</li>
-    )}
-  </ul>
-);`,
+const el = document.createElement('div');
+sandboxEl.appendChild(el);
+const root = reactCreateRoot(el);
+flushSync(() =>
+  root.render(
+    React.createElement('ul', null,
+      ...Array.from({ length: 5_000 }, (_, i) =>
+        React.createElement('li', { key: i }, i),
+      ),
+    ),
+  ),
+);
+root.unmount();
+sandboxEl.removeChild(el);`,
     },
   ]);
 
