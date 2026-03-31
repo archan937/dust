@@ -22,7 +22,7 @@ const GreetingDisplay = (): JSX.Element => {
   return (
     <div className={s.context.output}>
       <span>
-        👋 Hello, <strong>{name || 'Dust'}</strong>!
+        👋 Hello, <strong>{name() || 'Dust'}</strong>!
       </span>
       <span className={s.context.badge}>useContext</span>
     </div>
